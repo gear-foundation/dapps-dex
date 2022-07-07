@@ -41,7 +41,7 @@ impl Pair {
             // Math.sqrt(amount0.mul(amount1)).sub(MINIMUM_LIQUIDITY);
             liquidity = amount0.overflowing_mul(amount1).0.sqrt().overflowing_sub(MINIMUM_LIQUIDITY).0
             // add this later to ft lib
-            // FTCore::mint_to_id(ZERO_ID, liquidity);
+            FTCore::mint(ZERO_ID, liquidity);
         } else {
             liquidity = cmp::min(
                 amount0.overflowing_mul(total_supply).0.overflowing_div(self.reserve0).0,
@@ -51,7 +51,7 @@ impl Pair {
         if liquidity <= 0 {
             panic!("PAIR: Liquidity MUST be greater than 0.");
         }
-        // FTCore::mint_to_id(to, liquidity);
+        FTCore::mint(to, liquidity);
         self._update(self.balance0, self.balance1, self.reserve0, self.reserve1);
         if fee_on {
             self.k_last = self.reserve0.overflowing_mul(self.reserve1).0;
@@ -74,7 +74,7 @@ impl Pair {
                     let denominator = root_k.overflowing_mul(5).0.overflowing_add(root_k_last).0;
                     let liquidity = numerator.overflowing_div(denominator).0;
                     if liquidity > 0 {
-                        FTCore::mint_to_id(fee_to, liquidity);
+                        FTCore::mint(fee_to, liquidity);
                     }
                 }
             }
@@ -106,12 +106,13 @@ impl Pair {
             panic!("PAIR: Insufficient liquidity burnt.");
         }
         // add this later to ft_core
-        let program_address = exec::program_id();
-        // FTCore::burn_from_id(exec::program_id(), liquidity);
+        FTCore::burn(liquidity);
 
         // do not get what _safetransfer is
         // _safeTransfer(_token0, to, amount0);
+        messages::transfer_tokens(&self.token_0, &exec::program_id(), &to, amount0);
         // _safeTransfer(_token1, to, amount1);
+        messages::transfer_tokens(&self.token_1, &exec::program_id(), &to, amount1);
         self.balance0 -= amount0;
         self.balance1 -= amount1;
         self._update(self.balance0, self.balance1, self.reserve0, self.reserve1);
@@ -127,12 +128,16 @@ impl Pair {
         if to == self.token_0 || to == self.token_1 {
             panic!("PAIR: to MUST be different from token pools addresses.");
         }
-
+        if amount0_out > 0 {
+            messages::transfer_tokens(&self.token_0, &exec::program_id(), &to, amount0_out);
+        }
+        if amount1_out > 0 {
+            messages::transfer_tokens(&self.token_1, &exec::program_id(), &to, amount1_out);
+        }
         // if (amount0Out > 0) _safeTransfer(_token0, to, amount0Out); // optimistically transfer tokens
         // if (amount1Out > 0) _safeTransfer(_token1, to, amount1Out); // optimistically transfer tokens
         self.balance0 = self.balance0 - amount0_out;
         self.balance1 = self.balance1 - amount1_out;
-        // balance0 > _reserve0 - amount0Out ? balance0 - (_reserve0 - amount0Out) : 0;
         let amount0_in = if self.balance0 > self.reserve0 - amount0_out { self.balance0 - (self.reserve0 - amount0_out) } else { 0 };
         let amount1_in = if self.balance1 > self.reserve1 - amount0_out { self.balance1 - (self.reserve1 - amount0_out) } else { 0 };
         self._update(self.balance0, self.balance1, self.reserve0, self.reserve1);
@@ -200,8 +205,6 @@ impl Pair {
         amount1_min: u128,
         to: ActorId,
     ) {
-        // get pair address
-        // IUniswapV2Pair(pair).transferFrom(msg.sender, pair, liquidity); // send liquidity to pair
         FTCore::transfer(&msg::source(), &exec::program_id(), liquidity);
         // call burn
         self._burn(to);
@@ -212,10 +215,7 @@ impl Pair {
         amount_in: u128,
         to: ActorId,
     ) {
-        // getAmountsOut
-        let amount_out = math::get_amount_out(amount_in, self.reserve0, self.reserve1);
-        // safeTransferFrom(msg.sender, pair_address, amount_out);
-        self._swap(amount_in, amount_out, to);
+        let amount_out = math::get_amount_out(amount_in, self.reserve0, self.reserve1);        self._swap(amount_in, amount_out, to);
     }
 
     pub fn swap_tokens_for_exact(
@@ -223,9 +223,7 @@ impl Pair {
         amount_out: u128,
         to: ActorId,
     ) {
-        // getAmountsIn
         let amount_in = math::get_amount_in(amount_out, self.reserve0, self.reserve1);
-        // safeTransferFrom(msg.sender, pair_address, amount_out);
         self._swap(amount_in, amount_out, to);
     }
 }
