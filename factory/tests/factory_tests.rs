@@ -18,7 +18,7 @@ fn set_fee_to() {
     assert!(res.contains(&(FEE_SETTER, message)));
 
     // check if new fee_to is in state
-    check_fee_to(&factory, FEE_SETTER, ActorId::from(NEW_FEE_TO));
+    check_fee_to(&factory, ActorId::from(NEW_FEE_TO));
 }
 
 #[test]
@@ -46,7 +46,7 @@ fn set_fee_to_setter() {
     .encode();
     assert!(res.contains(&(FEE_SETTER, message)));
     // check if new fee_to_setter is in state
-    check_fee_to_setter(&factory, FEE_SETTER, ActorId::from(NEW_FEE_SETTER));
+    check_fee_to_setter(&factory, ActorId::from(NEW_FEE_SETTER));
 }
 
 #[test]
@@ -78,7 +78,7 @@ fn create_pair() {
     assert!(!res.log().is_empty());
 
     // check if the all pair length is equal to 1
-    check_pair_len(&factory, USER, 1);
+    check_pair_len(&factory, 1);
 }
 
 #[test]

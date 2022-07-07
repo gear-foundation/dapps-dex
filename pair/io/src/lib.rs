@@ -12,51 +12,28 @@ pub struct InitPair {
 
 #[derive(Debug, Encode, Decode, TypeInfo)]
 pub enum PairAction {
-    Sync {},
-    Skim {
+    AddLiquidity {
+        amount0_desired: u128,
+        amount1_desired: u128,
+        amount0_min: u128,
+        amount1_min: u128,
         to: ActorId,
     },
-    Mint {
-        to: ActorId,
-    },
-    Burn {
-        to: ActorId,
-    },
-    Swap {
-        amount0: u128,
-        amount1: u128,
-        to: ActorId,
+    RemoveLiquidity {
+
     }
 }
 
 #[derive(Debug, Encode, Decode, TypeInfo)]
 pub enum PairEvent {
-    Sync {
-        reserve0: u128,
-        reserve1: u128,
-    },
-    Skim {
-        to: ActorId,
-    },
-    Mint {
-        to: ActorId,
+    AddedLiquidity {
         amount0: u128,
         amount1: u128,
-    },
-    Burn {
-        sender: ActorId,
-        to: ActorId,
-        amount0: u128,
-        amount1: u128,
-    },
-    Swap {
-        sender: ActorId,
-        amount0_in: u128,
-        amount0_out: u128,
-        amount1_in: u128,
-        amount1_out: u128,
         to: ActorId,
     },
+    RemovedLiquidity {
+
+    }
 }
 
 #[derive(Debug, Encode, Decode, TypeInfo)]
