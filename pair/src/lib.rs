@@ -1,9 +1,9 @@
 #![no_std]
 
-use pair_io::*;
-use gstd::{msg, exec, prelude::*, ActorId, cmp};
 use gear_lib_derive::{FTCore, FTMetaState, FTStateKeeper};
+use gstd::{cmp, exec, msg, prelude::*, ActorId};
 use num::integer::Roots;
+use pair_io::*;
 pub mod math;
 pub mod messages;
 
@@ -29,7 +29,6 @@ pub struct Pair {
 static mut PAIR: Option<Pair> = None;
 
 impl Pair {
-
     // INTERNAL METHODS
     fn _mint(&mut self, to: ActorId) -> u128 {
         let amount0 = self.balance0.overflowing_sub(self.reserve0).0;
@@ -39,13 +38,26 @@ impl Pair {
         let liquidity: u128;
         if total_supply == 0 {
             // Math.sqrt(amount0.mul(amount1)).sub(MINIMUM_LIQUIDITY);
-            liquidity = amount0.overflowing_mul(amount1).0.sqrt().overflowing_sub(MINIMUM_LIQUIDITY).0
+            liquidity = amount0
+                .overflowing_mul(amount1)
+                .0
+                .sqrt()
+                .overflowing_sub(MINIMUM_LIQUIDITY)
+                .0;
             // add this later to ft lib
             FTCore::mint(ZERO_ID, liquidity);
         } else {
             liquidity = cmp::min(
-                amount0.overflowing_mul(total_supply).0.overflowing_div(self.reserve0).0,
-                amount1.overflowing_mul(total_supply).0.overflowing_div(self.reserve1).0,
+                amount0
+                    .overflowing_mul(total_supply)
+                    .0
+                    .overflowing_div(self.reserve0)
+                    .0,
+                amount1
+                    .overflowing_mul(total_supply)
+                    .0
+                    .overflowing_div(self.reserve1)
+                    .0,
             )
         }
         if liquidity <= 0 {
@@ -68,9 +80,11 @@ impl Pair {
                 let root_k = self.reserve0.overflowing_mul(self.reserve1).0;
                 let root_k_last = self.k_last.sqrt();
                 if root_k > root_k_last {
-                    let numerator = self.get().total_supply.overflowing_mul(
-                        root_k.overflowing_sub(root_k_last).0
-                    ).0;
+                    let numerator = self
+                        .get()
+                        .total_supply
+                        .overflowing_mul(root_k.overflowing_sub(root_k_last).0)
+                        .0;
                     let denominator = root_k.overflowing_mul(5).0.overflowing_add(root_k_last).0;
                     let liquidity = numerator.overflowing_div(denominator).0;
                     if liquidity > 0 {
@@ -87,7 +101,7 @@ impl Pair {
     fn _update(&mut self, balance0: u128, balance1: u128, reserve0: u128, reserve1: u128) {
         let current_ts = exec::block_timestamp() % 1 >> 32;
         let time_elapsed = current_ts as u128 - self.last_block_ts;
-        if time_elapsed > 0 && self.reserve0 != 0 && self.reserve1 1= 0 {
+        if time_elapsed > 0 && self.reserve0 != 0 && self.reserve1 != 0 {
             //     price0CumulativeLast += uint(UQ112x112.encode(_reserve1).uqdiv(_reserve0)) * timeElapsed;
             //     price1CumulativeLast += uint(UQ112x112.encode(_reserve0).uqdiv(_reserve1)) * timeElapsed;
         }
@@ -100,8 +114,16 @@ impl Pair {
         let fee_on = self._mint_fee(self.reserve0, self.reserve1);
         // get liquidity
         let liquidity: u128 = 0;
-        let amount0 = liquidity.overflowing_mul(self.balance0).0.overflowing_div(self.get().total_supply).0;
-        let amount1 = liquidity.overflowing_mul(self.balance1).0.overflowing_div(self.get().total_supply).0;
+        let amount0 = liquidity
+            .overflowing_mul(self.balance0)
+            .0
+            .overflowing_div(self.get().total_supply)
+            .0;
+        let amount1 = liquidity
+            .overflowing_mul(self.balance1)
+            .0
+            .overflowing_div(self.get().total_supply)
+            .0;
         if amount0 <= 0 || amount1 <= 0 {
             panic!("PAIR: Insufficient liquidity burnt.");
         }
@@ -110,9 +132,9 @@ impl Pair {
 
         // do not get what _safetransfer is
         // _safeTransfer(_token0, to, amount0);
-        messages::transfer_tokens(&self.token_0, &exec::program_id(), &to, amount0);
+        messages::transfer_tokens(&self.token_0, &exec::program_id(), &to, amount0).await;
         // _safeTransfer(_token1, to, amount1);
-        messages::transfer_tokens(&self.token_1, &exec::program_id(), &to, amount1);
+        messages::transfer_tokens(&self.token_1, &exec::program_id(), &to, amount1).await;
         self.balance0 -= amount0;
         self.balance1 -= amount1;
         self._update(self.balance0, self.balance1, self.reserve0, self.reserve1);
@@ -129,34 +151,72 @@ impl Pair {
             panic!("PAIR: to MUST be different from token pools addresses.");
         }
         if amount0_out > 0 {
-            messages::transfer_tokens(&self.token_0, &exec::program_id(), &to, amount0_out);
+            messages::transfer_tokens(&self.token_0, &exec::program_id(), &to, amount0_out).await;
         }
         if amount1_out > 0 {
-            messages::transfer_tokens(&self.token_1, &exec::program_id(), &to, amount1_out);
+            messages::transfer_tokens(&self.token_1, &exec::program_id(), &to, amount1_out).await;
         }
-        // if (amount0Out > 0) _safeTransfer(_token0, to, amount0Out); // optimistically transfer tokens
-        // if (amount1Out > 0) _safeTransfer(_token1, to, amount1Out); // optimistically transfer tokens
         self.balance0 = self.balance0 - amount0_out;
         self.balance1 = self.balance1 - amount1_out;
-        let amount0_in = if self.balance0 > self.reserve0 - amount0_out { self.balance0 - (self.reserve0 - amount0_out) } else { 0 };
-        let amount1_in = if self.balance1 > self.reserve1 - amount0_out { self.balance1 - (self.reserve1 - amount0_out) } else { 0 };
+        let amount0_in = if self.balance0 > self.reserve0 - amount0_out {
+            self.balance0 - (self.reserve0 - amount0_out)
+        } else {
+            0
+        };
+        let amount1_in = if self.balance1 > self.reserve1 - amount0_out {
+            self.balance1 - (self.reserve1 - amount0_out)
+        } else {
+            0
+        };
         self._update(self.balance0, self.balance1, self.reserve0, self.reserve1);
     }
 
     // EXTERNAL STUFF
-    pub fn skim(&mut self, to: ActorId) {
-        // _safeTransfer(_token0, to, IERC20(_token0).balanceOf(address(this)).sub(reserve0));
-        // _safeTransfer(_token1, to, IERC20(_token1).balanceOf(address(this)).sub(reserve1));
+    pub async fn skim(&mut self, to: ActorId) {
+        messages::transfer_tokens(
+            &self.token0,
+            &exec::program_id(),
+            &to,
+            self.balance0.overflowing_sub(self.reverve0).0,
+        )
+        .await;
+        messages::transfer_tokens(
+            &self.token1,
+            &exec::program_id(),
+            &to,
+            self.balance1.overflowing_sub(self.reverve1).0,
+        )
+        .await;
+        self.balance0 -= self.reverve0;
+        self.balance1 -= self.reserve1;
+        msg::reply(
+            PairEvent::Skim {
+                to,
+                amount0: self.balance0,
+                amount1: self.balance1,
+            },
+            0,
+        )
+        .expect("Error during a replying with PairEvent::Sync");
     }
 
     pub async fn sync(&mut self) {
         let balance0 = messages::get_balance(&self.token_0, &exec::program_id()).await;
         let balance1 = messages::get_balance(&self.token_1, &exec::program_id()).await;
         self._update(balance0, balance1, self.reserve0, self.reserve1);
+        msg::reply(
+            PairEvent::Sync {
+                balance0,
+                balance1,
+                reserve0: self.reserve0,
+                reserve1: self.reserve1,
+            },
+            0,
+        )
+        .expect("Error during a replying with PairEvent::Sync");
     }
 
-
-    pub fn add_liquidity(
+    pub async fn add_liquidity(
         &mut self,
         amount0_desired: u128,
         amount1_desired: u128,
@@ -188,17 +248,26 @@ impl Pair {
         }
 
         let pair_address = exec::program_id();
-        messages::transfer_tokens(&self.token_0, &msg::source(), &pair_address, amount0);
-        messages::transfer_tokens(&self.token_1, &msg::source(), &pair_address, amount1);
+        messages::transfer_tokens(&self.token_0, &msg::source(), &pair_address, amount0).await;
+        messages::transfer_tokens(&self.token_1, &msg::source(), &pair_address, amount1).await;
         self.balance0 += amount0;
         self.balance1 += amount1;
 
         // call mint function
         let liquidity = self._mint(to);
-        // msg::reply(payload: E, value: u128);
+        msg::reply(
+            PairEvent::AddedLiquidity {
+                amount0,
+                amount1,
+                liquidity,
+                to,
+            },
+            0,
+        )
+        .expect("Error during a replying with PairEvent::AddedLiquidity");
     }
 
-    pub fn remove_liquidity(
+    pub async fn remove_liquidity(
         &mut self,
         liquidity: u128,
         amount0_min: u128,
@@ -207,24 +276,37 @@ impl Pair {
     ) {
         FTCore::transfer(&msg::source(), &exec::program_id(), liquidity);
         // call burn
-        self._burn(to);
+        self._burn(to).await;
+        msg::reply(PairEvent::RemovedLiquidity { liquidity, to }, 0)
+            .expect("Error during a replying with PairEvent::RemovedLiquidity");
     }
 
-    pub fn swap_exact_tokens_for(
-        &mut self,
-        amount_in: u128,
-        to: ActorId,
-    ) {
-        let amount_out = math::get_amount_out(amount_in, self.reserve0, self.reserve1);        self._swap(amount_in, amount_out, to);
+    pub async fn swap_exact_tokens_for(&mut self, amount_in: u128, to: ActorId) {
+        let amount_out = math::get_amount_out(amount_in, self.reserve0, self.reserve1);
+        self._swap(amount_in, amount_out, to).await;
+        msg::reply(
+            PairEvent::SwapExactTokensFor {
+                to,
+                amount_in,
+                amount_out,
+            },
+            0,
+        )
+        .expect("Error during a replying with PairEvent::SwapExactTokensFor");
     }
 
-    pub fn swap_tokens_for_exact(
-        &mut self,
-        amount_out: u128,
-        to: ActorId,
-    ) {
+    pub async fn swap_tokens_for_exact(&mut self, amount_out: u128, to: ActorId) {
         let amount_in = math::get_amount_in(amount_out, self.reserve0, self.reserve1);
-        self._swap(amount_in, amount_out, to);
+        self._swap(amount_in, amount_out, to).await;
+        msg::reply(
+            PairEvent::SwapTokensForExact {
+                to,
+                amount_in,
+                amount_out,
+            },
+            0,
+        )
+        .expect("Error during a replying with PairEvent::SwapTokensForExact");
     }
 }
 
@@ -245,12 +327,44 @@ extern "C" fn init() {
     }
 }
 
-
 #[gstd::async_main]
 async unsafe fn main() {
     let action: PairAction = msg::load().expect("Unable to decode PairAction");
     let pair = unsafe { PAIR.get_or_insert(Default::default()) };
     match action {
+        PairAction::AddLiquidity {
+            amount0_desired,
+            amount1_desired,
+            amount0_min,
+            amount1_min,
+            to,
+        } => {
+            pair.add_liquidity(
+                amount0_desired,
+                amount1_desired,
+                amount0_min,
+                amount1_min,
+                to,
+            )
+            .await
+        }
+        PairAction::RemoveLiquidity {
+            liquidity,
+            amount0_min,
+            amount1_min,
+            to,
+        } => {
+            pair.remove_liquidity(liquidity, amount0_min, amount1_min, to)
+                .await
+        }
+        PairAction::Sync => pair.sync().await,
+        PairAction::Skim { to } => pair.skim(to).await,
+        PairAction::SwapExactTokensFor { to, amount_in } => {
+            pair.swap_exact_tokens_for(amount_in, to).await
+        }
+        PairAction::SwapTokensForExact { to, amount_out } => {
+            pair.swap_tokens_for_exact(amount_out, to).await
+        }
     }
 }
 
@@ -259,7 +373,18 @@ extern "C" fn meta_state() -> *mut [i32; 2] {
     let state: PairStateQuery = msg::load().expect("Unable to decode PairStateQuery");
     let pair = unsafe { PAIR.get_or_insert(Default::default()) };
     let reply = match state {
-
+        PairStateQuery::TokenAddresses {} => PairStateReply::TokenAddresses {
+            token0: self.token0,
+            token1: self.token1,
+        },
+        PairStateQuery::Reserves {} => PairStateReply::Reserves {
+            reserve0: self.reserve0,
+            reserve1: self.reserve1,
+        },
+        PairStateQuery::Prices {} => PairStateReply::Prices {
+            price0: self.price_0_cl,
+            price1: self.price_1_cl,
+        },
     };
     gstd::util::to_leak_ptr(reply.encode())
 }
