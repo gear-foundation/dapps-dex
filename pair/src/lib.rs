@@ -102,8 +102,20 @@ impl Pair {
         let current_ts = exec::block_timestamp() % 1 >> 32;
         let time_elapsed = current_ts as u128 - self.last_block_ts;
         if time_elapsed > 0 && self.reserve0 != 0 && self.reserve1 != 0 {
-            //     price0CumulativeLast += uint(UQ112x112.encode(_reserve1).uqdiv(_reserve0)) * timeElapsed;
-            //     price1CumulativeLast += uint(UQ112x112.encode(_reserve0).uqdiv(_reserve1)) * timeElapsed;
+            self.price_0_cl = self.price_0_cl.overflowing_add(
+                self.price_0_cl
+                    .overflowing_div(self.reserve0)
+                    .0
+                    .overflowing_mul(time_elapsed)
+                    .0,
+            );
+            self.price_1_cl = self.price_1_cl.overflowing_add(
+                self.price_1_cl
+                    .overflowing_div(self.reserve1)
+                    .0
+                    .overflowing_mul(time_elapsed)
+                    .0,
+            );
         }
         self.reserve0 = self.balance0;
         self.reserve1 = self.balance1;
