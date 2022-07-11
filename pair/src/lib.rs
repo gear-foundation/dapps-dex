@@ -295,7 +295,8 @@ impl Pair {
 
     pub async fn swap_exact_tokens_for(&mut self, amount_in: u128, to: ActorId) {
         let amount_out = math::get_amount_out(amount_in, self.reserve0, self.reserve1);
-        self._swap(amount_in, amount_out, to).await;
+        messages::transfer_tokens(&self.token0, &exec::program_id(), &to, amount_out).await;
+        self._swap(0, amount_out, to).await;
         msg::reply(
             PairEvent::SwapExactTokensFor {
                 to,
@@ -309,7 +310,8 @@ impl Pair {
 
     pub async fn swap_tokens_for_exact(&mut self, amount_out: u128, to: ActorId) {
         let amount_in = math::get_amount_in(amount_out, self.reserve0, self.reserve1);
-        self._swap(amount_in, amount_out, to).await;
+        messages::transfer_tokens(&self.token1, &exec::program_id(), &to, amount_out).await;
+        self._swap(amount_in, 0, to).await;
         msg::reply(
             PairEvent::SwapTokensForExact {
                 to,
