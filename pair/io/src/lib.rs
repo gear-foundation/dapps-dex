@@ -6,8 +6,8 @@ use scale_info::TypeInfo;
 #[derive(Debug, Encode, Decode, TypeInfo)]
 pub struct InitPair {
     pub factory: ActorId,
-    pub token_0: ActorId,
-    pub token_1: ActorId,
+    pub token0: ActorId,
+    pub token1: ActorId,
 }
 
 #[derive(Debug, Encode, Decode, TypeInfo)]
@@ -55,7 +55,7 @@ pub enum PairEvent {
         balance0: u128,
         balance1: u128,
         reserve0: u128,
-        reverve1: u128,
+        reserve1: u128,
     },
     Skim {
         to: ActorId,

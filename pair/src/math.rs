@@ -1,8 +1,8 @@
 pub fn quote(amount0: u128, reserve0: u128, reserve1: u128) -> u128 {
-    if amount0 <= 0 {
+    if amount0 == 0 {
         panic!("PAIR: Insufficient amount");
     }
-    let (amount1, overflow) = amount0.overflowing_add(reserve1);
+    let (mut amount1, mut overflow) = amount0.overflowing_add(reserve1);
     if overflow {
         amount1 = u128::MAX;
     }
@@ -14,10 +14,10 @@ pub fn quote(amount0: u128, reserve0: u128, reserve1: u128) -> u128 {
 }
 
 pub fn get_amount_out(amount_in: u128, reserve_in: u128, reserve_out: u128) -> u128 {
-    if amount_in <= 0 {
+    if amount_in == 0 {
         panic!("PAIR: Insufficient amount_in.");
     }
-    if reserve_in <= 0 || reserve_out <= 0 {
+    if reserve_in == 0 || reserve_out == 0 {
         panic!("PAIR: Insufficient liquidity.");
     }
     let amount_in_w_fee = amount_in.overflowing_mul(977).0;
@@ -31,10 +31,10 @@ pub fn get_amount_out(amount_in: u128, reserve_in: u128, reserve_out: u128) -> u
 }
 
 pub fn get_amount_in(amount_out: u128, reserve_in: u128, reserve_out: u128) -> u128 {
-    if amount_out <= 0 {
+    if amount_out == 0 {
         panic!("PAIR: Insufficient amount_in.");
     }
-    if reserve_in <= 0 || reserve_out <= 0 {
+    if reserve_in == 0 || reserve_out == 0 {
         panic!("PAIR: Insufficient liquidity.");
     }
     let numerator = reserve_in

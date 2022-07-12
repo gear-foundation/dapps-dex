@@ -1,5 +1,6 @@
 #![no_std]
 
+use gear_lib::fungible_token::{ft_core::*, state::*};
 use gear_lib_derive::{FTCore, FTMetaState, FTStateKeeper};
 use gstd::{cmp, exec, msg, prelude::*, ActorId};
 use num::integer::Roots;
@@ -13,16 +14,17 @@ static ZERO_ID: ActorId = ActorId::zero();
 #[derive(Debug, Default, FTStateKeeper, FTCore, FTMetaState)]
 pub struct Pair {
     #[FTStateField]
+    pub token: FTState,
     pub factory: ActorId,
-    pub token_0: ActorId,
-    pub token_1: ActorId,
+    pub token0: ActorId,
+    pub token1: ActorId,
     last_block_ts: u128,
     pub balance0: u128,
     pub balance1: u128,
     reserve0: u128,
     reserve1: u128,
-    pub price_0_cl: u128,
-    pub price_1_cl: u128,
+    pub price0_cl: u128,
+    pub price1_cl: u128,
     pub k_last: u128,
 }
 
@@ -45,7 +47,7 @@ impl Pair {
                 .overflowing_sub(MINIMUM_LIQUIDITY)
                 .0;
             // add this later to ft lib
-            FTCore::mint(ZERO_ID, liquidity);
+            FTCore::mint(self, &ZERO_ID, liquidity);
         } else {
             liquidity = cmp::min(
                 amount0
@@ -60,10 +62,10 @@ impl Pair {
                     .0,
             )
         }
-        if liquidity <= 0 {
+        if liquidity == 0 {
             panic!("PAIR: Liquidity MUST be greater than 0.");
         }
-        FTCore::mint(to, liquidity);
+        FTCore::mint(self, &to, liquidity);
         self._update(self.balance0, self.balance1, self.reserve0, self.reserve1);
         if fee_on {
             self.k_last = self.reserve0.overflowing_mul(self.reserve1).0;
@@ -74,10 +76,10 @@ impl Pair {
     fn _mint_fee(&mut self, reserve0: u128, reserve1: u128) -> bool {
         // get fee_to from factory
         let fee_to: ActorId = ActorId::zero();
-        let fee_on = if fee_to == ZERO_ID { false } else { true };
+        let fee_on = fee_to != ZERO_ID;
         if fee_on {
             if self.k_last != 0 {
-                let root_k = self.reserve0.overflowing_mul(self.reserve1).0;
+                let root_k = reserve0.overflowing_mul(reserve1).0;
                 let root_k_last = self.k_last.sqrt();
                 if root_k > root_k_last {
                     let numerator = self
@@ -88,7 +90,7 @@ impl Pair {
                     let denominator = root_k.overflowing_mul(5).0.overflowing_add(root_k_last).0;
                     let liquidity = numerator.overflowing_div(denominator).0;
                     if liquidity > 0 {
-                        FTCore::mint(fee_to, liquidity);
+                        FTCore::mint(self, &fee_to, liquidity);
                     }
                 }
             }
@@ -99,30 +101,30 @@ impl Pair {
     }
 
     fn _update(&mut self, balance0: u128, balance1: u128, reserve0: u128, reserve1: u128) {
-        let current_ts = exec::block_timestamp() % 1 >> 32;
+        let current_ts = exec::block_timestamp() % (1 << 32);
         let time_elapsed = current_ts as u128 - self.last_block_ts;
-        if time_elapsed > 0 && self.reserve0 != 0 && self.reserve1 != 0 {
-            self.price_0_cl = self.price_0_cl.overflowing_add(
-                self.price_0_cl
-                    .overflowing_div(self.reserve0)
+        if time_elapsed > 0 && reserve0 != 0 && reserve1 != 0 {
+            self.price0_cl = self.price0_cl.overflowing_add(
+                self.price0_cl
+                    .overflowing_div(reserve0)
                     .0
                     .overflowing_mul(time_elapsed)
                     .0,
-            );
-            self.price_1_cl = self.price_1_cl.overflowing_add(
-                self.price_1_cl
-                    .overflowing_div(self.reserve1)
+            ).0;
+            self.price1_cl = self.price1_cl.overflowing_add(
+                self.price1_cl
+                    .overflowing_div(reserve1)
                     .0
                     .overflowing_mul(time_elapsed)
                     .0,
-            );
+            ).0;
         }
-        self.reserve0 = self.balance0;
-        self.reserve1 = self.balance1;
+        self.reserve0 = balance0;
+        self.reserve1 = balance1;
         self.last_block_ts = current_ts as u128;
     }
 
-    async fn _burn(&mut self, to: ActorId) {
+    async fn _burn(&mut self, to: ActorId) -> (u128, u128){
         let fee_on = self._mint_fee(self.reserve0, self.reserve1);
         // get liquidity
         let liquidity: u128 = 0;
@@ -136,50 +138,51 @@ impl Pair {
             .0
             .overflowing_div(self.get().total_supply)
             .0;
-        if amount0 <= 0 || amount1 <= 0 {
+        if amount0 == 0 || amount1 == 0 {
             panic!("PAIR: Insufficient liquidity burnt.");
         }
         // add this later to ft_core
-        FTCore::burn(liquidity);
+        FTCore::burn(self, liquidity);
 
         // do not get what _safetransfer is
         // _safeTransfer(_token0, to, amount0);
-        messages::transfer_tokens(&self.token_0, &exec::program_id(), &to, amount0).await;
+        messages::transfer_tokens(&self.token0, &exec::program_id(), &to, amount0).await;
         // _safeTransfer(_token1, to, amount1);
-        messages::transfer_tokens(&self.token_1, &exec::program_id(), &to, amount1).await;
+        messages::transfer_tokens(&self.token1, &exec::program_id(), &to, amount1).await;
         self.balance0 -= amount0;
         self.balance1 -= amount1;
         self._update(self.balance0, self.balance1, self.reserve0, self.reserve1);
         if fee_on {
             self.k_last = self.reserve0.overflowing_mul(self.reserve1).0;
         }
+        (amount0, amount1)
     }
 
     async fn _swap(&mut self, amount0_out: u128, amount1_out: u128, to: ActorId) {
         if amount0_out > self.reserve0 || amount1_out > self.reserve1 {
             panic!("PAIR: Insufficient liquidity.");
         }
-        if to == self.token_0 || to == self.token_1 {
+        if to == self.token0 || to == self.token1 {
             panic!("PAIR: to MUST be different from token pools addresses.");
         }
         if amount0_out > 0 {
-            messages::transfer_tokens(&self.token_0, &exec::program_id(), &to, amount0_out).await;
+            messages::transfer_tokens(&self.token0, &exec::program_id(), &to, amount0_out).await;
         }
         if amount1_out > 0 {
-            messages::transfer_tokens(&self.token_1, &exec::program_id(), &to, amount1_out).await;
+            messages::transfer_tokens(&self.token1, &exec::program_id(), &to, amount1_out).await;
         }
-        self.balance0 = self.balance0 - amount0_out;
-        self.balance1 = self.balance1 - amount1_out;
-        let amount0_in = if self.balance0 > self.reserve0 - amount0_out {
-            self.balance0 - (self.reserve0 - amount0_out)
-        } else {
-            0
-        };
-        let amount1_in = if self.balance1 > self.reserve1 - amount0_out {
-            self.balance1 - (self.reserve1 - amount0_out)
-        } else {
-            0
-        };
+        self.balance0 -= amount0_out;
+        self.balance1 -= amount1_out;
+        // let amount0_in = if self.balance0 > self.reserve0 - amount0_out {
+        //     self.balance0 - (self.reserve0 - amount0_out)
+        // } else {
+        //     0
+        // };
+        // let amount1_in = if self.balance1 > self.reserve1 - amount0_out {
+        //     self.balance1 - (self.reserve1 - amount0_out)
+        // } else {
+        //     0
+        // };
         self._update(self.balance0, self.balance1, self.reserve0, self.reserve1);
     }
 
@@ -189,17 +192,17 @@ impl Pair {
             &self.token0,
             &exec::program_id(),
             &to,
-            self.balance0.overflowing_sub(self.reverve0).0,
+            self.balance0.overflowing_sub(self.reserve0).0,
         )
         .await;
         messages::transfer_tokens(
             &self.token1,
             &exec::program_id(),
             &to,
-            self.balance1.overflowing_sub(self.reverve1).0,
+            self.balance1.overflowing_sub(self.reserve1).0,
         )
         .await;
-        self.balance0 -= self.reverve0;
+        self.balance0 -= self.reserve0;
         self.balance1 -= self.reserve1;
         msg::reply(
             PairEvent::Skim {
@@ -213,8 +216,8 @@ impl Pair {
     }
 
     pub async fn sync(&mut self) {
-        let balance0 = messages::get_balance(&self.token_0, &exec::program_id()).await;
-        let balance1 = messages::get_balance(&self.token_1, &exec::program_id()).await;
+        let balance0 = messages::get_balance(&self.token0, &exec::program_id()).await;
+        let balance1 = messages::get_balance(&self.token1, &exec::program_id()).await;
         self._update(balance0, balance1, self.reserve0, self.reserve1);
         msg::reply(
             PairEvent::Sync {
@@ -260,8 +263,8 @@ impl Pair {
         }
 
         let pair_address = exec::program_id();
-        messages::transfer_tokens(&self.token_0, &msg::source(), &pair_address, amount0).await;
-        messages::transfer_tokens(&self.token_1, &msg::source(), &pair_address, amount1).await;
+        messages::transfer_tokens(&self.token0, &msg::source(), &pair_address, amount0).await;
+        messages::transfer_tokens(&self.token1, &msg::source(), &pair_address, amount1).await;
         self.balance0 += amount0;
         self.balance1 += amount1;
 
@@ -286,9 +289,15 @@ impl Pair {
         amount1_min: u128,
         to: ActorId,
     ) {
-        FTCore::transfer(&msg::source(), &exec::program_id(), liquidity);
+        FTCore::transfer(self, &msg::source(), &exec::program_id(), liquidity);
         // call burn
-        self._burn(to).await;
+        let (amount0, amount1) = self._burn(to).await;
+        if amount0 > amount0_min {
+            panic!("PAIR: Insufficient amount of token 0")
+        }
+        if amount1 > amount1_min {
+            panic!("PAIR: Insufficient amount of token 1")
+        }
         msg::reply(PairEvent::RemovedLiquidity { liquidity, to }, 0)
             .expect("Error during a replying with PairEvent::RemovedLiquidity");
     }
@@ -332,8 +341,8 @@ extern "C" fn init() {
     }
     let pair = Pair {
         factory: config.factory,
-        token_0: config.token_0,
-        token_1: config.token_1,
+        token0: config.token0,
+        token1: config.token1,
         ..Default::default()
     };
     unsafe {
@@ -371,7 +380,7 @@ async unsafe fn main() {
             pair.remove_liquidity(liquidity, amount0_min, amount1_min, to)
                 .await
         }
-        PairAction::Sync => pair.sync().await,
+        PairAction::Sync {} => pair.sync().await,
         PairAction::Skim { to } => pair.skim(to).await,
         PairAction::SwapExactTokensFor { to, amount_in } => {
             pair.swap_exact_tokens_for(amount_in, to).await
@@ -388,16 +397,16 @@ extern "C" fn meta_state() -> *mut [i32; 2] {
     let pair = unsafe { PAIR.get_or_insert(Default::default()) };
     let reply = match state {
         PairStateQuery::TokenAddresses {} => PairStateReply::TokenAddresses {
-            token0: self.token0,
-            token1: self.token1,
+            token0: pair.token0,
+            token1: pair.token1,
         },
         PairStateQuery::Reserves {} => PairStateReply::Reserves {
-            reserve0: self.reserve0,
-            reserve1: self.reserve1,
+            reserve0: pair.reserve0,
+            reserve1: pair.reserve1,
         },
         PairStateQuery::Prices {} => PairStateReply::Prices {
-            price0: self.price_0_cl,
-            price1: self.price_1_cl,
+            price0: pair.price0_cl,
+            price1: pair.price1_cl,
         },
     };
     gstd::util::to_leak_ptr(reply.encode())

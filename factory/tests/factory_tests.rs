@@ -89,10 +89,10 @@ fn create_pair_failures() {
     let token_a = ActorId::from(TOKEN_A);
     let token_b = ActorId::from(TOKEN_B);
     // MUST fail since token_a and token_b share the same address
-    let res = create_pair_utils(&factory, USER, token_a, token_a);
+    let _ = create_pair_utils(&factory, USER, token_a, token_a);
     // MUST fail since token_a is a ZERO address
-    let res = create_pair_utils(&factory, USER, ZERO_ID, token_a);
+    let _ = create_pair_utils(&factory, USER, ZERO_ID, token_a);
     // MUST fail since the pair already exists
-    let res = create_pair_utils(&factory, USER, token_a, token_b);
-    let res = create_pair_utils(&factory, USER, token_a, token_b);
+    let _ = create_pair_utils(&factory, USER, token_a, token_b);
+    let _ = create_pair_utils(&factory, USER, token_a, token_b);
 }

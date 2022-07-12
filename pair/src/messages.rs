@@ -1,8 +1,5 @@
-#![no_std]
-
 use ft_io::*;
-use gstd::{msg, prelude::*, ActorId};
-use pair_io::*;
+use gstd::{msg, ActorId};
 
 pub async fn transfer_tokens(
     token_address: &ActorId,
