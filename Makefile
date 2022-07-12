@@ -5,7 +5,7 @@ all: init build test
 build:
 	@echo ──────────── Build release ────────────────────
 	@cargo +nightly build --release
-	@ls -l ./target/wasm-projects/release/*.wasm
+	@ls -l ./target/wasm32-unknown-unknown/release/*.wasm
 
 clean:
 	@echo ──────────── Clean ────────────────────────────
