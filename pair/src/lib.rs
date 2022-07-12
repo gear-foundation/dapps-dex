@@ -104,27 +104,33 @@ impl Pair {
         let current_ts = exec::block_timestamp() % (1 << 32);
         let time_elapsed = current_ts as u128 - self.last_block_ts;
         if time_elapsed > 0 && reserve0 != 0 && reserve1 != 0 {
-            self.price0_cl = self.price0_cl.overflowing_add(
-                self.price0_cl
-                    .overflowing_div(reserve0)
-                    .0
-                    .overflowing_mul(time_elapsed)
-                    .0,
-            ).0;
-            self.price1_cl = self.price1_cl.overflowing_add(
-                self.price1_cl
-                    .overflowing_div(reserve1)
-                    .0
-                    .overflowing_mul(time_elapsed)
-                    .0,
-            ).0;
+            self.price0_cl = self
+                .price0_cl
+                .overflowing_add(
+                    self.price0_cl
+                        .overflowing_div(reserve0)
+                        .0
+                        .overflowing_mul(time_elapsed)
+                        .0,
+                )
+                .0;
+            self.price1_cl = self
+                .price1_cl
+                .overflowing_add(
+                    self.price1_cl
+                        .overflowing_div(reserve1)
+                        .0
+                        .overflowing_mul(time_elapsed)
+                        .0,
+                )
+                .0;
         }
         self.reserve0 = balance0;
         self.reserve1 = balance1;
         self.last_block_ts = current_ts as u128;
     }
 
-    async fn _burn(&mut self, to: ActorId) -> (u128, u128){
+    async fn _burn(&mut self, to: ActorId) -> (u128, u128) {
         let fee_on = self._mint_fee(self.reserve0, self.reserve1);
         // get liquidity
         let liquidity: u128 = 0;
