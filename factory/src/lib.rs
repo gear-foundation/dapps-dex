@@ -1,12 +1,14 @@
 #![no_std]
 
 use factory_io::*;
-use gstd::{msg, prelude::*, ActorId};
+use gstd::{exec, msg, prelude::*, prog::ProgramGenerator, ActorId};
+use pair_io::*;
 
 const ZERO_ID: ActorId = ActorId::zero();
 
 #[derive(Debug, Default)]
 pub struct Factory {
+    pub pair_code_hash: [u8; 32],
     pub owner_id: ActorId,
     pub fee_to: ActorId,
     pub fee_to_setter: ActorId,
@@ -81,10 +83,20 @@ impl Factory {
         }
 
         // create program
-        let program_id = ActorId::zero();
-        self.pairs
-            .entry((token_a, token_b))
-            .or_insert(program_id);
+        let factory_id = &exec::program_id();
+        let program_id = ProgramGenerator::create_program(
+            self.pair_code_hash.into(),
+            InitPair {
+                factory: *factory_id,
+                token0: token_a,
+                token1: token_b,
+            }
+            .encode(),
+            0,
+        )
+        .expect("Error in creating pair");
+
+        self.pairs.entry((token_a, token_b)).or_insert(program_id);
 
         self.all_pairs.push(program_id);
         msg::reply(
@@ -106,6 +118,7 @@ extern "C" fn init() {
     let factory = Factory {
         fee_to_setter: config.fee_to_setter,
         owner_id: msg::source(),
+        pair_code_hash: config.pair_code_hash,
         ..Default::default()
     };
     unsafe {
@@ -128,7 +141,12 @@ async unsafe fn main() {
             factory.create_pair(token_a, token_b).await;
         }
         FactoryAction::FeeTo => {
-            msg::reply(FactoryEvent::FeeTo { address: factory.fee_to }, 0)
+            msg::reply(
+                FactoryEvent::FeeTo {
+                    address: factory.fee_to,
+                },
+                0,
+            )
             .expect("FACTORY: Error during a replying with FactoryEvent::FeeTo");
         }
     }
@@ -152,12 +170,9 @@ extern "C" fn meta_state() -> *mut [i32; 2] {
                 (token_a, token_b)
             };
             FactoryStateReply::PairAddress {
-                address: *factory
-                    .pairs
-                    .get(&(t1, t2))
-                    .expect("No such token pair"),
+                address: *factory.pairs.get(&(t1, t2)).expect("No such token pair"),
             }
-        },
+        }
         FactoryStateQuery::AllPairsLength => FactoryStateReply::AllPairsLength {
             length: factory.all_pairs.len() as u32,
         },

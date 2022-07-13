@@ -6,6 +6,7 @@ use scale_info::TypeInfo;
 #[derive(Debug, Encode, Decode, TypeInfo)]
 pub struct InitFactory {
     pub fee_to_setter: ActorId,
+    pub pair_code_hash: [u8; 32],
 }
 
 #[derive(Debug, Encode, Decode, TypeInfo)]

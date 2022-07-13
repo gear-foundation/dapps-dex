@@ -17,6 +17,7 @@ pub fn init_factory(sys: &System) {
         USER,
         InitFactory {
             fee_to_setter: ActorId::from(FEE_SETTER),
+            pair_code_hash: [0; 32],
         },
     );
     assert!(res.log().is_empty());
@@ -31,10 +32,7 @@ pub fn create_pair_utils(
     factory.send(user, FactoryAction::CreatePair { token_a, token_b })
 }
 
-pub fn fee_to_utils(
-    factory: &Program,
-    user: u64,
-) -> RunResult {
+pub fn fee_to_utils(factory: &Program, user: u64) -> RunResult {
     factory.send(user, FactoryAction::FeeTo {})
 }
 
