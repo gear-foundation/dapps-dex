@@ -25,7 +25,7 @@ pub enum PairAction {
         amount1_min: u128,
         to: ActorId,
     },
-    Sync {},
+    Sync,
     Skim {
         to: ActorId,
     },
@@ -76,9 +76,9 @@ pub enum PairEvent {
 
 #[derive(Debug, Encode, Decode, TypeInfo)]
 pub enum PairStateQuery {
-    TokenAddresses {},
-    Reserves {},
-    Prices {},
+    TokenAddresses,
+    Reserves,
+    Prices,
 }
 
 #[derive(Debug, Encode, Decode, TypeInfo)]

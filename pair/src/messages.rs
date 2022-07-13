@@ -1,5 +1,18 @@
 use ft_io::*;
+use factory_io::*;
 use gstd::{msg, ActorId};
+
+pub async fn get_fee_to(factory_address: &ActorId) -> ActorId {
+    let fee_to_response: FactoryEvent =
+        msg::send_for_reply_as(*factory_address, FactoryAction::FeeTo, 0)
+            .unwrap()
+            .await
+            .expect("Error in get_fee_to");
+    if let FactoryEvent::FeeTo{ address: fee_to } = fee_to_response {
+        return fee_to;
+    }
+    ActorId::zero()
+}
 
 pub async fn transfer_tokens(
     token_address: &ActorId,

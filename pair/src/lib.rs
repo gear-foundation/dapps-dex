@@ -386,7 +386,7 @@ async unsafe fn main() {
             pair.remove_liquidity(liquidity, amount0_min, amount1_min, to)
                 .await
         }
-        PairAction::Sync {} => pair.sync().await,
+        PairAction::Sync => pair.sync().await,
         PairAction::Skim { to } => pair.skim(to).await,
         PairAction::SwapExactTokensFor { to, amount_in } => {
             pair.swap_exact_tokens_for(amount_in, to).await
@@ -402,15 +402,15 @@ extern "C" fn meta_state() -> *mut [i32; 2] {
     let state: PairStateQuery = msg::load().expect("Unable to decode PairStateQuery");
     let pair = unsafe { PAIR.get_or_insert(Default::default()) };
     let reply = match state {
-        PairStateQuery::TokenAddresses {} => PairStateReply::TokenAddresses {
+        PairStateQuery::TokenAddresses => PairStateReply::TokenAddresses {
             token0: pair.token0,
             token1: pair.token1,
         },
-        PairStateQuery::Reserves {} => PairStateReply::Reserves {
+        PairStateQuery::Reserves => PairStateReply::Reserves {
             reserve0: pair.reserve0,
             reserve1: pair.reserve1,
         },
-        PairStateQuery::Prices {} => PairStateReply::Prices {
+        PairStateQuery::Prices => PairStateReply::Prices {
             price0: pair.price0_cl,
             price1: pair.price1_cl,
         },

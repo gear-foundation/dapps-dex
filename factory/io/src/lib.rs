@@ -13,6 +13,7 @@ pub enum FactoryAction {
     CreatePair { token_a: ActorId, token_b: ActorId },
     SetFeeTo { fee_to: ActorId },
     SetFeeToSetter { fee_to_setter: ActorId },
+    FeeTo,
 }
 
 #[derive(Debug, Encode, Decode, TypeInfo)]
@@ -29,15 +30,18 @@ pub enum FactoryEvent {
     FeeToSetterSet {
         fee_to_setter: ActorId,
     },
+    FeeTo {
+        address: ActorId,
+    },
 }
 
 #[derive(Debug, Encode, Decode, TypeInfo)]
 pub enum FactoryStateQuery {
-    FeeTo {},
-    FeeToSetter {},
+    FeeTo,
+    FeeToSetter,
     PairAddress { token_a: ActorId, token_b: ActorId },
-    AllPairsLength {},
-    Owner {},
+    AllPairsLength,
+    Owner,
 }
 
 #[derive(Debug, Encode, Decode, TypeInfo)]

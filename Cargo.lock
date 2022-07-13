@@ -1028,6 +1028,7 @@ dependencies = [
 name = "pair"
 version = "0.1.0"
 dependencies = [
+ "factory-io",
  "ft-io",
  "gear-lib",
  "gear-lib-derive",

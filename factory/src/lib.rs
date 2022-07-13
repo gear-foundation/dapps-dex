@@ -11,7 +11,7 @@ pub struct Factory {
     pub fee_to: ActorId,
     pub fee_to_setter: ActorId,
     pub all_pairs: Vec<ActorId>,
-    pub pairs: BTreeMap<ActorId, BTreeMap<ActorId, ActorId>>,
+    pub pairs: BTreeMap<(ActorId, ActorId), ActorId>,
 }
 
 static mut FACTORY: Option<Factory> = None;
@@ -64,32 +64,28 @@ impl Factory {
     /// Arguments:
     /// * `token_a` is the first token address
     /// * `token_b` is the second token address
-    async fn create_pair(&mut self, token_a: ActorId, token_b: ActorId) {
+    async fn create_pair(&mut self, mut token_a: ActorId, mut token_b: ActorId) {
+        (token_a, token_b) = if token_a > token_b {
+            (token_b, token_a)
+        } else {
+            (token_a, token_b)
+        };
         if token_a == token_b {
             panic!("FACTORY: Identical token addresses");
         }
         if token_a == ZERO_ID || token_b == ZERO_ID {
             panic!("FACTORY: One of your addresses is a ZERO one");
         }
-        if self.pairs.contains_key(&token_a) {
-            // we can unwrap here, since there is a key
-            if self.pairs.get(&token_a).unwrap().contains_key(&token_b) {
-                panic!("FACTORY: Such pair already exists");
-            }
+        if self.pairs.contains_key(&(token_a, token_b)) {
+            panic!("FACTORY: Such pair already exists.");
         }
 
         // create program
         let program_id = ActorId::zero();
         self.pairs
-            .entry(token_a)
-            .or_default()
-            .entry(token_b)
+            .entry((token_a, token_b))
             .or_insert(program_id);
-        self.pairs
-            .entry(token_b)
-            .or_default()
-            .entry(token_a)
-            .or_insert(program_id);
+
         self.all_pairs.push(program_id);
         msg::reply(
             FactoryEvent::PairCreated {
@@ -131,6 +127,10 @@ async unsafe fn main() {
         FactoryAction::CreatePair { token_a, token_b } => {
             factory.create_pair(token_a, token_b).await;
         }
+        FactoryAction::FeeTo => {
+            msg::reply(FactoryEvent::FeeTo { address: factory.fee_to }, 0)
+            .expect("FACTORY: Error during a replying with FactoryEvent::FeeTo");
+        }
     }
 }
 
@@ -139,24 +139,29 @@ extern "C" fn meta_state() -> *mut [i32; 2] {
     let state: FactoryStateQuery = msg::load().expect("Unable to decode FactoryStateQuey");
     let factory = unsafe { FACTORY.get_or_insert(Default::default()) };
     let reply = match state {
-        FactoryStateQuery::FeeTo {} => FactoryStateReply::FeeTo {
+        FactoryStateQuery::FeeTo => FactoryStateReply::FeeTo {
             address: factory.fee_to,
         },
-        FactoryStateQuery::FeeToSetter {} => FactoryStateReply::FeeToSetter {
+        FactoryStateQuery::FeeToSetter => FactoryStateReply::FeeToSetter {
             address: factory.fee_to_setter,
         },
-        FactoryStateQuery::PairAddress { token_a, token_b } => FactoryStateReply::PairAddress {
-            address: *factory
-                .pairs
-                .get(&token_a)
-                .expect("No such token A")
-                .get(&token_b)
-                .expect("No such token B"),
+        FactoryStateQuery::PairAddress { token_a, token_b } => {
+            let (t1, t2) = if token_a > token_b {
+                (token_b, token_a)
+            } else {
+                (token_a, token_b)
+            };
+            FactoryStateReply::PairAddress {
+                address: *factory
+                    .pairs
+                    .get(&(t1, t2))
+                    .expect("No such token pair"),
+            }
         },
-        FactoryStateQuery::AllPairsLength {} => FactoryStateReply::AllPairsLength {
+        FactoryStateQuery::AllPairsLength => FactoryStateReply::AllPairsLength {
             length: factory.all_pairs.len() as u32,
         },
-        FactoryStateQuery::Owner {} => FactoryStateReply::Owner {
+        FactoryStateQuery::Owner => FactoryStateReply::Owner {
             address: factory.owner_id,
         },
     };

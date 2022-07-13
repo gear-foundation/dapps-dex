@@ -31,6 +31,13 @@ pub fn create_pair_utils(
     factory.send(user, FactoryAction::CreatePair { token_a, token_b })
 }
 
+pub fn fee_to_utils(
+    factory: &Program,
+    user: u64,
+) -> RunResult {
+    factory.send(user, FactoryAction::FeeTo {})
+}
+
 pub fn set_fee_to_utils(factory: &Program, user: u64, fee_to: ActorId) -> RunResult {
     factory.send(user, FactoryAction::SetFeeTo { fee_to })
 }

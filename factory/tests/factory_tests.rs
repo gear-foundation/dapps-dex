@@ -5,6 +5,20 @@ mod utils;
 use utils::*;
 
 #[test]
+fn fee_to() {
+    let sys = System::new();
+    init_factory(&sys);
+    let factory = sys.get_program(1);
+    _ = set_fee_to_utils(&factory, FEE_SETTER, ActorId::from(NEW_FEE_TO));
+    let res = fee_to_utils(&factory, FEE_SETTER);
+    let message = FactoryEvent::FeeTo {
+        address: ActorId::from(NEW_FEE_TO),
+    }
+    .encode();
+    assert!(res.contains(&(FEE_SETTER, message)));
+}
+
+#[test]
 fn set_fee_to() {
     let sys = System::new();
     init_factory(&sys);
