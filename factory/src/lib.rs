@@ -8,11 +8,14 @@ const ZERO_ID: ActorId = ActorId::zero();
 
 #[derive(Debug, Default)]
 pub struct Factory {
+    // CodeHash to deploy a pair contract from factory.
     pub pair_code_hash: [u8; 32],
     pub owner_id: ActorId,
+    // Who gets the fee
     pub fee_to: ActorId,
     pub fee_to_setter: ActorId,
     pub all_pairs: Vec<ActorId>,
+    // (tokenA, tokenB) -> pair_address mapping
     pub pairs: BTreeMap<(ActorId, ActorId), ActorId>,
 }
 

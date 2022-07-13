@@ -31,10 +31,12 @@ pub enum PairAction {
     },
     SwapExactTokensFor {
         to: ActorId,
+        // amount of token0 you wish to trade
         amount_in: u128,
     },
     SwapTokensForExact {
         to: ActorId,
+        // amount of token1 the user with to trade
         amount_out: u128,
     },
 }

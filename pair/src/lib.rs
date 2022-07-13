@@ -32,10 +32,15 @@ static mut PAIR: Option<Pair> = None;
 
 impl Pair {
     // INTERNAL METHODS
-    fn _mint(&mut self, to: ActorId) -> u128 {
+
+    /// Mints the liquidity.
+    /// `to` - MUST be a non-zero address
+    /// Arguments:
+    /// * `to` - is the operation performer
+    async fn _mint(&mut self, to: ActorId) -> u128 {
         let amount0 = self.balance0.overflowing_sub(self.reserve0).0;
         let amount1 = self.balance1.overflowing_sub(self.reserve1).0;
-        let fee_on = self._mint_fee(self.reserve0, self.reserve1);
+        let fee_on = self._mint_fee(self.reserve0, self.reserve1).await;
         let total_supply = self.get().total_supply;
         let liquidity: u128;
         if total_supply == 0 {
@@ -73,13 +78,23 @@ impl Pair {
         liquidity
     }
 
-    fn _mint_fee(&mut self, reserve0: u128, reserve1: u128) -> bool {
+    /// Mint liquidity if fee is on.
+    /// If fee is on, mint liquidity equivalent to 1/6th of the growth in sqrt(k). So the math if the following.
+    /// Calculate the sqrt of current k using the reserves. Compare it.
+    /// If the current one is greater, than calculate the liquidity using the following formula:
+    /// liquidity = (total_supply * (root_k - last_root_k)) / (root_k * 5 + last_root_k).
+    /// `reserve0` - MUST be a positive number
+    /// `reserve1` - MUST be a positive number
+    /// Arguments:
+    /// * `reserve0` - the available amount of token0
+    /// * `reserve1` - the available amount of token1
+    async fn _mint_fee(&mut self, reserve0: u128, reserve1: u128) -> bool {
         // get fee_to from factory
-        let fee_to: ActorId = ActorId::zero();
+        let fee_to: ActorId = messages::get_fee_to(&self.factory).await;
         let fee_on = fee_to != ZERO_ID;
         if fee_on {
             if self.k_last != 0 {
-                let root_k = reserve0.overflowing_mul(reserve1).0;
+                let root_k = reserve0.overflowing_mul(reserve1).0.sqrt();
                 let root_k_last = self.k_last.sqrt();
                 if root_k > root_k_last {
                     let numerator = self
@@ -100,6 +115,16 @@ impl Pair {
         fee_on
     }
 
+    /// Updates reserves and, on the first call per block, price accumulators
+    /// `balance0` - MUST be a positive number
+    /// `balance1` - MUST be a positive number
+    /// `reserve0` - MUST be a positive number
+    /// `reserve1` - MUST be a positive number
+    /// Arguments:
+    /// * `balance0` - token0 balance
+    /// * `balance1` - token1 balance
+    /// * `reserve0` - the available amount of token0
+    /// * `reserve1` - the available amount of token1
     fn _update(&mut self, balance0: u128, balance1: u128, reserve0: u128, reserve1: u128) {
         let current_ts = exec::block_timestamp() % (1 << 32);
         let time_elapsed = current_ts as u128 - self.last_block_ts;
@@ -130,8 +155,12 @@ impl Pair {
         self.last_block_ts = current_ts as u128;
     }
 
+    /// Burns the liquidity.
+    /// `to` - MUST be a non-zero address
+    /// Arguments:
+    /// * `to` - is the operation performer
     async fn _burn(&mut self, to: ActorId) -> (u128, u128) {
-        let fee_on = self._mint_fee(self.reserve0, self.reserve1);
+        let fee_on = self._mint_fee(self.reserve0, self.reserve1).await;
         // get liquidity
         let liquidity: u128 = 0;
         let amount0 = liquidity
@@ -164,35 +193,43 @@ impl Pair {
         (amount0, amount1)
     }
 
-    async fn _swap(&mut self, amount0_out: u128, amount1_out: u128, to: ActorId) {
-        if amount0_out > self.reserve0 || amount1_out > self.reserve1 {
+    /// Swaps two tokens just by calling transfer_tokens from the token contracts.
+    /// Also maintains the balances and updates the reservers to match the balances.
+    /// `amount0` - MUST be more than self.reserve0
+    /// `amount1` - MUST be more than self.reserve1
+    /// `to` - MUST be a non-zero address
+    /// Arguments:
+    /// * `amount0` - amount of token0
+    /// * `amount1` - amount of token1
+    /// * `to` - is the operation performer
+    /// * `forward` - is the direction. If true - user inputs token0 and gets token1, otherwise - token1 -> token0
+    async fn _swap(&mut self, amount0: u128, amount1: u128, to: ActorId, forward: bool) {
+        if amount0 > self.reserve0 && forward {
             panic!("PAIR: Insufficient liquidity.");
         }
-        if to == self.token0 || to == self.token1 {
-            panic!("PAIR: to MUST be different from token pools addresses.");
+        if amount1 > self.reserve1 && !forward {
+            panic!("PAIR: Insufficient liquidity.");
         }
-        if amount0_out > 0 {
-            messages::transfer_tokens(&self.token0, &exec::program_id(), &to, amount0_out).await;
+        if forward {
+            messages::transfer_tokens(&self.token0, &exec::program_id(), &to, amount0).await;
+            messages::transfer_tokens(&self.token1, &to, &exec::program_id(), amount1).await;
+            self.balance0 -= amount0;
+            self.balance1 += amount1;
+        } else {
+            messages::transfer_tokens(&self.token0, &to, &exec::program_id(), amount0).await;
+            messages::transfer_tokens(&self.token1, &exec::program_id(), &to, amount1).await;
+            self.balance0 += amount0;
+            self.balance1 -= amount1;
         }
-        if amount1_out > 0 {
-            messages::transfer_tokens(&self.token1, &exec::program_id(), &to, amount1_out).await;
-        }
-        self.balance0 -= amount0_out;
-        self.balance1 -= amount1_out;
-        // let amount0_in = if self.balance0 > self.reserve0 - amount0_out {
-        //     self.balance0 - (self.reserve0 - amount0_out)
-        // } else {
-        //     0
-        // };
-        // let amount1_in = if self.balance1 > self.reserve1 - amount0_out {
-        //     self.balance1 - (self.reserve1 - amount0_out)
-        // } else {
-        //     0
-        // };
         self._update(self.balance0, self.balance1, self.reserve0, self.reserve1);
     }
 
-    // EXTERNAL STUFF
+    // EXTERNAL FUNCTIONS
+
+    /// Forces balances to match the reserves.
+    /// `to` - MUST be a non-zero address
+    /// Arguments:
+    /// * `to` - where to perform tokens' transfers
     pub async fn skim(&mut self, to: ActorId) {
         messages::transfer_tokens(
             &self.token0,
@@ -221,6 +258,7 @@ impl Pair {
         .expect("Error during a replying with PairEvent::Sync");
     }
 
+    /// Forces reserves to match balances.
     pub async fn sync(&mut self) {
         let balance0 = messages::get_balance(&self.token0, &exec::program_id()).await;
         let balance1 = messages::get_balance(&self.token1, &exec::program_id()).await;
@@ -237,6 +275,14 @@ impl Pair {
         .expect("Error during a replying with PairEvent::Sync");
     }
 
+    /// Adds liquidity to the pool.
+    /// `to` - MUST be a non-zero address
+    /// Arguments:
+    /// * `amount0_desired` - is the desired amount of token0 the user wants to add
+    /// * `amount1_desired` - is the desired amount of token1 the user wants to add
+    /// * `amount0_min` - is the minimum amount of token0 the user wants to add
+    /// * `amount1_min` - is the minimum amount of token1 the user wants to add
+    /// * `to` - is the liquidity provider
     pub async fn add_liquidity(
         &mut self,
         amount0_desired: u128,
@@ -275,7 +321,7 @@ impl Pair {
         self.balance1 += amount1;
 
         // call mint function
-        let liquidity = self._mint(to);
+        let liquidity = self._mint(to).await;
         msg::reply(
             PairEvent::AddedLiquidity {
                 amount0,
@@ -288,6 +334,14 @@ impl Pair {
         .expect("Error during a replying with PairEvent::AddedLiquidity");
     }
 
+    /// Removes liquidity from the pool.
+    /// Internally calls self._burn function while transferring `liquidity` amount of internal tokens
+    /// `to` - MUST be a non-zero address
+    /// Arguments:
+    /// * `liquidity` - is the desired liquidity the user wants to remove (e.g. burn)
+    /// * `amount0_min` - is the minimum amount of token0 the user wants to receive
+    /// * `amount1_min` - is the minimum amount of token1 the user wants to receive
+    /// * `to` - is the liquidity provider
     pub async fn remove_liquidity(
         &mut self,
         liquidity: u128,
@@ -308,10 +362,17 @@ impl Pair {
             .expect("Error during a replying with PairEvent::RemovedLiquidity");
     }
 
+    /// Swaps exact token0 for some token1
+    /// Internally calculates the price from the reserves and call self._swap
+    /// `to` - MUST be a non-zero address
+    /// `amount_in` - MUST be non-zero
+    /// Arguments:
+    /// * `amount_in` - is the amount of token0 user want to swap
+    /// * `to` - is the receiver of the swap operation
     pub async fn swap_exact_tokens_for(&mut self, amount_in: u128, to: ActorId) {
+        // token1 amount
         let amount_out = math::get_amount_out(amount_in, self.reserve0, self.reserve1);
-        messages::transfer_tokens(&self.token0, &exec::program_id(), &to, amount_out).await;
-        self._swap(0, amount_out, to).await;
+        self._swap(amount_in, amount_out, to, true).await;
         msg::reply(
             PairEvent::SwapExactTokensFor {
                 to,
@@ -323,10 +384,16 @@ impl Pair {
         .expect("Error during a replying with PairEvent::SwapExactTokensFor");
     }
 
+    /// Swaps exact token1 for some token0
+    /// Internally calculates the price from the reserves and call self._swap
+    /// `to` - MUST be a non-zero address
+    /// `amount_in` - MUST be non-zero
+    /// Arguments:
+    /// * `amount_out` - is the amount of token1 user want to swap
+    /// * `to` - is the receiver of the swap operation
     pub async fn swap_tokens_for_exact(&mut self, amount_out: u128, to: ActorId) {
         let amount_in = math::get_amount_in(amount_out, self.reserve0, self.reserve1);
-        messages::transfer_tokens(&self.token1, &exec::program_id(), &to, amount_out).await;
-        self._swap(amount_in, 0, to).await;
+        self._swap(amount_in, amount_out, to, false).await;
         msg::reply(
             PairEvent::SwapTokensForExact {
                 to,
