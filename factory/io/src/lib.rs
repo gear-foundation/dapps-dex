@@ -3,6 +3,8 @@ use codec::{Decode, Encode};
 use gstd::{prelude::*, ActorId};
 use scale_info::TypeInfo;
 
+pub type TokenId = ActorId;
+
 #[derive(Debug, Encode, Decode, TypeInfo)]
 pub struct InitFactory {
     pub fee_to_setter: ActorId,
@@ -11,36 +13,30 @@ pub struct InitFactory {
 
 #[derive(Debug, Encode, Decode, TypeInfo)]
 pub enum FactoryAction {
-    CreatePair { token_a: ActorId, token_b: ActorId },
-    SetFeeTo { fee_to: ActorId },
-    SetFeeToSetter { fee_to_setter: ActorId },
+    CreatePair(ActorId, ActorId),
+    SetFeeTo(ActorId),
+    SetFeeToSetter(ActorId),
     FeeTo,
 }
 
 #[derive(Debug, Encode, Decode, TypeInfo)]
 pub enum FactoryEvent {
     PairCreated {
-        token_a: ActorId,
-        token_b: ActorId,
+        token_a: TokenId,
+        token_b: TokenId,
         pair_address: ActorId,
         pairs_length: u32,
     },
-    FeeToSet {
-        fee_to: ActorId,
-    },
-    FeeToSetterSet {
-        fee_to_setter: ActorId,
-    },
-    FeeTo {
-        address: ActorId,
-    },
+    FeeToSet(ActorId),
+    FeeToSetterSet(ActorId),
+    FeeTo(ActorId),
 }
 
 #[derive(Debug, Encode, Decode, TypeInfo)]
 pub enum FactoryStateQuery {
     FeeTo,
     FeeToSetter,
-    PairAddress { token_a: ActorId, token_b: ActorId },
+    PairAddress { token_a: TokenId, token_b: TokenId },
     AllPairsLength,
     Owner,
 }

@@ -3,11 +3,13 @@ use codec::{Decode, Encode};
 use gstd::{prelude::*, ActorId};
 use scale_info::TypeInfo;
 
+pub type TokenId = ActorId;
+
 #[derive(Debug, Encode, Decode, TypeInfo)]
 pub struct InitPair {
     pub factory: ActorId,
-    pub token0: ActorId,
-    pub token1: ActorId,
+    pub token0: TokenId,
+    pub token1: TokenId,
 }
 
 #[derive(Debug, Encode, Decode, TypeInfo)]

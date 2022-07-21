@@ -1,4 +1,4 @@
-use factory_io::*;
+use dex_factory_io::*;
 use ft_io::*;
 use gstd::{msg, ActorId};
 
@@ -12,7 +12,7 @@ pub async fn get_fee_to(factory_address: &ActorId) -> ActorId {
             .unwrap()
             .await
             .expect("Error in get_fee_to");
-    if let FactoryEvent::FeeTo { address: fee_to } = fee_to_response {
+    if let FactoryEvent::FeeTo(fee_to) = fee_to_response {
         return fee_to;
     }
     ActorId::zero()

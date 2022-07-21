@@ -22,7 +22,7 @@ pub fn quote(amount0: u128, reserve0: u128, reserve1: u128) -> u128 {
 
 /// Calculates the amount of token1 for given amount of token0 and reserves.
 /// Takes the fee of 3% into account, so the formula is:
-/// amount1 = (amount0 * reserve1)/reseve1 * 0.997
+/// amount1 = (amount0 * reserve1)/reserve1 * 0.997
 /// Where * 0.997 is represented as * 997 / 1000
 /// Arguments:
 /// * `amount_in` - the amount of token0

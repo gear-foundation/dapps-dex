@@ -1,13 +1,8 @@
-use factory_io::*;
+use dex_factory_io::*;
 use gstd::{prelude::*, ActorId};
 use gtest::{Program, RunResult, System};
 pub const USER: u64 = 10;
 pub const FEE_SETTER: u64 = 11;
-pub const NEW_FEE_SETTER: u64 = 12;
-pub const NEW_FEE_TO: u64 = 13;
-pub const ZERO_ID: ActorId = ActorId::zero();
-pub const TOKEN_A: u64 = 101;
-pub const TOKEN_B: u64 = 102;
 
 pub fn init_factory(sys: &System) {
     sys.init_logger();
@@ -23,29 +18,24 @@ pub fn init_factory(sys: &System) {
     assert!(res.log().is_empty());
 }
 
-pub fn create_pair_utils(
-    factory: &Program,
-    user: u64,
-    token_a: ActorId,
-    token_b: ActorId,
-) -> RunResult {
-    factory.send(user, FactoryAction::CreatePair { token_a, token_b })
+pub fn create_pair(factory: &Program, user: u64, token_a: ActorId, token_b: ActorId) -> RunResult {
+    factory.send(user, FactoryAction::CreatePair(token_a, token_b))
 }
 
-pub fn fee_to_utils(factory: &Program, user: u64) -> RunResult {
-    factory.send(user, FactoryAction::FeeTo {})
+pub fn fee_to(factory: &Program, user: u64) -> RunResult {
+    factory.send(user, FactoryAction::FeeTo)
 }
 
-pub fn set_fee_to_utils(factory: &Program, user: u64, fee_to: ActorId) -> RunResult {
-    factory.send(user, FactoryAction::SetFeeTo { fee_to })
+pub fn set_fee_to(factory: &Program, user: u64, fee_to: ActorId) -> RunResult {
+    factory.send(user, FactoryAction::SetFeeTo(fee_to))
 }
 
-pub fn set_fee_to_setter_utils(factory: &Program, user: u64, fee_to_setter: ActorId) -> RunResult {
-    factory.send(user, FactoryAction::SetFeeToSetter { fee_to_setter })
+pub fn set_fee_to_setter(factory: &Program, user: u64, fee_to_setter: ActorId) -> RunResult {
+    factory.send(user, FactoryAction::SetFeeToSetter(fee_to_setter))
 }
 
 pub fn check_fee_to(factory: &Program, fee_to: ActorId) {
-    match factory.meta_state(FactoryStateQuery::FeeTo {}) {
+    match factory.meta_state(FactoryStateQuery::FeeTo) {
         gstd::Ok(FactoryStateReply::FeeTo {
             address: true_fee_to,
         }) => {
@@ -62,7 +52,7 @@ pub fn check_fee_to(factory: &Program, fee_to: ActorId) {
 }
 
 pub fn check_fee_to_setter(factory: &Program, fee_to_setter: ActorId) {
-    match factory.meta_state(FactoryStateQuery::FeeToSetter {}) {
+    match factory.meta_state(FactoryStateQuery::FeeToSetter) {
         gstd::Ok(FactoryStateReply::FeeToSetter {
             address: true_fee_to_setter,
         }) => {
@@ -77,7 +67,7 @@ pub fn check_fee_to_setter(factory: &Program, fee_to_setter: ActorId) {
 }
 
 pub fn check_pair_len(factory: &Program, length: u32) {
-    match factory.meta_state(FactoryStateQuery::AllPairsLength {}) {
+    match factory.meta_state(FactoryStateQuery::AllPairsLength) {
         gstd::Ok(FactoryStateReply::AllPairsLength {
             length: true_length,
         }) => {

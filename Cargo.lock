@@ -372,6 +372,59 @@ dependencies = [
 ]
 
 [[package]]
+name = "dex-factory"
+version = "0.1.0"
+dependencies = [
+ "dex-factory-io",
+ "dex-pair-io",
+ "gear-lib",
+ "gear-wasm-builder",
+ "gstd",
+ "gtest",
+ "parity-scale-codec",
+ "primitive-types",
+ "scale-info",
+]
+
+[[package]]
+name = "dex-factory-io"
+version = "0.1.0"
+dependencies = [
+ "gstd",
+ "parity-scale-codec",
+ "primitive-types",
+ "scale-info",
+]
+
+[[package]]
+name = "dex-pair"
+version = "0.1.0"
+dependencies = [
+ "dex-factory-io",
+ "dex-pair-io",
+ "ft-io",
+ "gear-lib",
+ "gear-lib-derive",
+ "gear-wasm-builder",
+ "gstd",
+ "gtest",
+ "num",
+ "parity-scale-codec",
+ "primitive-types",
+ "scale-info",
+]
+
+[[package]]
+name = "dex-pair-io"
+version = "0.1.0"
+dependencies = [
+ "gstd",
+ "parity-scale-codec",
+ "primitive-types",
+ "scale-info",
+]
+
+[[package]]
 name = "dlmalloc"
 version = "0.1.4"
 source = "git+https://github.com/gear-tech/dlmalloc-rust.git?rev=e76ae98#e76ae9869ea4d386e758d7ed5d983ba2a25d7629"
@@ -421,31 +474,6 @@ checksum = "aa68f1b12764fab894d2755d2518754e71b4fd80ecfb822714a1206c2aab39bf"
 dependencies = [
  "cc",
  "libc",
-]
-
-[[package]]
-name = "factory"
-version = "0.1.0"
-dependencies = [
- "factory-io",
- "gear-lib",
- "gear-wasm-builder",
- "gstd",
- "gtest",
- "pair-io",
- "parity-scale-codec",
- "primitive-types",
- "scale-info",
-]
-
-[[package]]
-name = "factory-io"
-version = "0.1.0"
-dependencies = [
- "gstd",
- "parity-scale-codec",
- "primitive-types",
- "scale-info",
 ]
 
 [[package]]
@@ -1023,34 +1051,6 @@ checksum = "eebde548fbbf1ea81a99b128872779c437752fb99f217c45245e1a61dcd9edcd"
 dependencies = [
  "libc",
  "winapi",
-]
-
-[[package]]
-name = "pair"
-version = "0.1.0"
-dependencies = [
- "factory-io",
- "ft-io",
- "gear-lib",
- "gear-lib-derive",
- "gear-wasm-builder",
- "gstd",
- "gtest",
- "num",
- "pair-io",
- "parity-scale-codec",
- "primitive-types",
- "scale-info",
-]
-
-[[package]]
-name = "pair-io"
-version = "0.1.0"
-dependencies = [
- "gstd",
- "parity-scale-codec",
- "primitive-types",
- "scale-info",
 ]
 
 [[package]]

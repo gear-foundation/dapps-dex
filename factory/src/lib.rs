@@ -1,8 +1,8 @@
 #![no_std]
 
-use factory_io::*;
+use dex_factory_io::*;
+use dex_pair_io::*;
 use gstd::{exec, msg, prelude::*, prog::ProgramGenerator, ActorId};
-use pair_io::*;
 
 const ZERO_ID: ActorId = ActorId::zero();
 
@@ -23,44 +23,39 @@ static mut FACTORY: Option<Factory> = None;
 
 impl Factory {
     /// Sets a fee_to address
-    /// `_fee_to` MUST be a non-zero address
+    /// `fee_to` MUST be a non-zero address
     /// Message source MUST be a fee_to_setter of the contract
     /// Arguments:
-    /// * `_fee_to` is a new fee_to address
-    fn set_fee_to(&mut self, _fee_to: ActorId) {
+    /// * `fee_to` is a new fee_to address
+    fn set_fee_to(&mut self, fee_to: ActorId) {
         if self.fee_to_setter != msg::source() {
             panic!("FACTORY: Setting fee_to is forbidden for this address");
         }
-        if _fee_to == ZERO_ID {
+        if fee_to == ZERO_ID {
             panic!("FACTORY: Fee_to can not be a ZERO address");
         }
-        self.fee_to = _fee_to;
+        self.fee_to = fee_to;
 
-        msg::reply(FactoryEvent::FeeToSet { fee_to: _fee_to }, 0)
+        msg::reply(FactoryEvent::FeeToSet(fee_to), 0)
             .expect("FACTORY: Error during a replying with FactoryEvent::FeeToSet");
     }
 
     /// Sets a fee_to_setter address
-    /// `_fee_to_setter` MUST be a non-zero address
+    /// `fee_to_setter` MUST be a non-zero address
     /// Message source MUST be a fee_to_setter of the contract
     /// Arguments:
-    /// * `_fee_to_setter` is a new fee_to_setter address
-    fn set_fee_to_setter(&mut self, _fee_to_setter: ActorId) {
+    /// * `fee_to_setter` is a new fee_to_setter address
+    fn set_fee_to_setter(&mut self, fee_to_setter: ActorId) {
         if self.fee_to_setter != msg::source() {
             panic!("FACTORY: Changing fee_to_setter is forbidden for this address");
         }
-        if _fee_to_setter == ZERO_ID {
+        if fee_to_setter == ZERO_ID {
             panic!("FACTORY: Fee_to_setter can not be a ZERO address");
         }
-        self.fee_to_setter = _fee_to_setter;
+        self.fee_to_setter = fee_to_setter;
 
-        msg::reply(
-            FactoryEvent::FeeToSetterSet {
-                fee_to_setter: _fee_to_setter,
-            },
-            0,
-        )
-        .expect("FACTORY: Error during a replying with FactoryEvent::FeeToSetterSet");
+        msg::reply(FactoryEvent::FeeToSetterSet(fee_to_setter), 0)
+            .expect("FACTORY: Error during a replying with FactoryEvent::FeeToSetterSet");
     }
 
     /// Creates and deploys a new pair
@@ -99,7 +94,7 @@ impl Factory {
         )
         .expect("Error in creating pair");
 
-        self.pairs.entry((token_a, token_b)).or_insert(program_id);
+        self.pairs.insert((token_a, token_b), program_id);
 
         self.all_pairs.push(program_id);
         msg::reply(
@@ -130,27 +125,22 @@ extern "C" fn init() {
 }
 
 #[gstd::async_main]
-async unsafe fn main() {
+async fn main() {
     let action: FactoryAction = msg::load().expect("Unable to decode FactoryAction");
     let factory = unsafe { FACTORY.get_or_insert(Default::default()) };
     match action {
-        FactoryAction::SetFeeTo { fee_to } => {
+        FactoryAction::SetFeeTo(fee_to) => {
             factory.set_fee_to(fee_to);
         }
-        FactoryAction::SetFeeToSetter { fee_to_setter } => {
+        FactoryAction::SetFeeToSetter(fee_to_setter) => {
             factory.set_fee_to_setter(fee_to_setter);
         }
-        FactoryAction::CreatePair { token_a, token_b } => {
+        FactoryAction::CreatePair(token_a, token_b) => {
             factory.create_pair(token_a, token_b).await;
         }
         FactoryAction::FeeTo => {
-            msg::reply(
-                FactoryEvent::FeeTo {
-                    address: factory.fee_to,
-                },
-                0,
-            )
-            .expect("FACTORY: Error during a replying with FactoryEvent::FeeTo");
+            msg::reply(FactoryEvent::FeeTo(factory.fee_to), 0)
+                .expect("FACTORY: Error during a replying with FactoryEvent::FeeTo");
         }
     }
 }
