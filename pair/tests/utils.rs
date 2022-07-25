@@ -29,7 +29,14 @@ pub fn init_ft(sys: &System, user: u64, name: String, symbol: String, id: u64) -
     sys.init_logger();
     let ft_program = Program::from_file_with_id(sys, id, "../target/fungible_token.wasm");
     assert!(ft_program
-        .send(user, InitConfig { name, symbol },)
+        .send(
+            user,
+            InitConfig {
+                name,
+                symbol,
+                decimals: 18
+            },
+        )
         .log()
         .is_empty());
 
