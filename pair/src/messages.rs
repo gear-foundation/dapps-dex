@@ -47,6 +47,20 @@ pub async fn transfer_tokens(
     .expect("Error in transfer");
 }
 
+pub async fn approve_tokens(token_address: &ActorId, to: &ActorId, token_amount: u128) {
+    msg::send_for_reply_as::<_, FTEvent>(
+        *token_address,
+        FTAction::Approve {
+            to: *to,
+            amount: token_amount,
+        },
+        0,
+    )
+    .unwrap()
+    .await
+    .expect("Error in approve");
+}
+
 /// Get the balance of an account from a FT contract
 /// `token_address` - MUST be a non-zero address
 /// `account` - MUST be a non-zero address

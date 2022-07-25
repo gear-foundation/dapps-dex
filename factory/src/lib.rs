@@ -22,10 +22,10 @@ pub struct Factory {
 static mut FACTORY: Option<Factory> = None;
 
 impl Factory {
-    /// Sets a fee_to address
-    /// `fee_to` MUST be a non-zero address
-    /// Message source MUST be a fee_to_setter of the contract
-    /// Arguments:
+    // Sets a fee_to address
+    // `fee_to` MUST be a non-zero address
+    // Message source MUST be a fee_to_setter of the contract
+    // Arguments:
     /// * `fee_to` is a new fee_to address
     fn set_fee_to(&mut self, fee_to: ActorId) {
         if self.fee_to_setter != msg::source() {

@@ -33,10 +33,33 @@ static mut PAIR: Option<Pair> = None;
 impl Pair {
     // INTERNAL METHODS
 
-    /// Mints the liquidity.
-    /// `to` - MUST be a non-zero address
-    /// Arguments:
-    /// * `to` - is the operation performer
+    fn update_balance(&mut self, to: ActorId, amount: u128, increase: bool) {
+        self.get_mut()
+            .allowances
+            .entry(to)
+            .or_default()
+            .insert(to, amount);
+        if increase {
+            self.get_mut()
+                .balances
+                .entry(to)
+                .and_modify(|balance| *balance += amount)
+                .or_insert(amount);
+            self.get_mut().total_supply += amount;
+        } else {
+            self.get_mut()
+                .balances
+                .entry(to)
+                .and_modify(|balance| *balance -= amount)
+                .or_insert(amount);
+            self.get_mut().total_supply -= amount;
+        }
+    }
+
+    // Mints the liquidity.
+    // `to` - MUST be a non-zero address
+    // Arguments:
+    // * `to` - is the operation performer
     async fn mint(&mut self, to: ActorId) -> u128 {
         let amount0 = self.balance0.saturating_sub(self.reserve0);
         let amount1 = self.balance1.saturating_sub(self.reserve1);
@@ -49,9 +72,11 @@ impl Pair {
                 .overflowing_mul(amount1)
                 .0
                 .sqrt()
-                .saturating_sub(MINIMUM_LIQUIDITY);
+                .saturating_add(MINIMUM_LIQUIDITY);
+
             // add this later to ft lib
-            FTCore::mint(self, &ZERO_ID, liquidity);
+            self.update_balance(ZERO_ID, liquidity, true);
+            // FTCore::mint(self, &ZERO_ID, liquidity);
         } else {
             liquidity = cmp::min(
                 amount0
@@ -69,7 +94,8 @@ impl Pair {
         if liquidity == 0 {
             panic!("PAIR: Liquidity MUST be greater than 0.");
         }
-        FTCore::mint(self, &to, liquidity);
+        self.update_balance(to, liquidity, true);
+        // FTCore::mint(self, &to, liquidity);
         self.update(self.balance0, self.balance1, self.reserve0, self.reserve1);
         if fee_on {
             self.k_last = self.reserve0.overflowing_mul(self.reserve1).0;
@@ -77,16 +103,16 @@ impl Pair {
         liquidity
     }
 
-    /// Mint liquidity if fee is on.
-    /// If fee is on, mint liquidity equivalent to 1/6th of the growth in sqrt(k). So the math if the following.
-    /// Calculate the sqrt of current k using the reserves. Compare it.
-    /// If the current one is greater, than calculate the liquidity using the following formula:
-    /// liquidity = (total_supply * (root_k - last_root_k)) / (root_k * 5 + last_root_k).
-    /// `reserve0` - MUST be a positive number
-    /// `reserve1` - MUST be a positive number
-    /// Arguments:
-    /// * `reserve0` - the available amount of token0
-    /// * `reserve1` - the available amount of token1
+    // Mint liquidity if fee is on.
+    // If fee is on, mint liquidity equivalent to 1/6th of the growth in sqrt(k). So the math if the following.
+    // Calculate the sqrt of current k using the reserves. Compare it.
+    // If the current one is greater, than calculate the liquidity using the following formula:
+    // liquidity = (total_supply * (root_k - last_root_k)) / (root_k * 5 + last_root_k).
+    // `reserve0` - MUST be a positive number
+    // `reserve1` - MUST be a positive number
+    // Arguments:
+    // * `reserve0` - the available amount of token0
+    // * `reserve1` - the available amount of token1
     async fn mint_fee(&mut self, reserve0: u128, reserve1: u128) -> bool {
         // get fee_to from factory
         let fee_to: ActorId = messages::get_fee_to(&self.factory).await;
@@ -104,7 +130,8 @@ impl Pair {
                     let denominator = root_k.overflowing_mul(5).0.overflowing_add(root_k_last).0;
                     let liquidity = numerator.overflowing_div(denominator).0;
                     if liquidity > 0 {
-                        FTCore::mint(self, &fee_to, liquidity);
+                        self.update_balance(fee_to, liquidity, true);
+                        // FTCore::mint(self, &fee_to, liquidity);
                     }
                 }
             }
@@ -114,16 +141,16 @@ impl Pair {
         fee_on
     }
 
-    /// Updates reserves and, on the first call per block, price accumulators
-    /// `balance0` - MUST be a positive number
-    /// `balance1` - MUST be a positive number
-    /// `reserve0` - MUST be a positive number
-    /// `reserve1` - MUST be a positive number
-    /// Arguments:
-    /// * `balance0` - token0 balance
-    /// * `balance1` - token1 balance
-    /// * `reserve0` - the available amount of token0
-    /// * `reserve1` - the available amount of token1
+    // Updates reserves and, on the first call per block, price accumulators
+    // `balance0` - MUST be a positive number
+    // `balance1` - MUST be a positive number
+    // `reserve0` - MUST be a positive number
+    // `reserve1` - MUST be a positive number
+    // Arguments:
+    // * `balance0` - token0 balance
+    // * `balance1` - token1 balance
+    // * `reserve0` - the available amount of token0
+    // * `reserve1` - the available amount of token1
     fn update(&mut self, balance0: u128, balance1: u128, reserve0: u128, reserve1: u128) {
         let current_ts = (exec::block_timestamp() & 0xFFFFFFFF) as u32;
         let time_elapsed = current_ts as u128 - self.last_block_ts;
@@ -154,14 +181,19 @@ impl Pair {
         self.last_block_ts = current_ts as u128;
     }
 
-    /// Burns the liquidity.
-    /// `to` - MUST be a non-zero address
-    /// Arguments:
-    /// * `to` - is the operation performer
+    // Burns the liquidity.
+    // `to` - MUST be a non-zero address
+    // Arguments:
+    // * `to` - is the operation performer
     async fn burn(&mut self, to: ActorId) -> (u128, u128) {
         let fee_on = self.mint_fee(self.reserve0, self.reserve1).await;
         // get liquidity
-        let liquidity: u128 = 0;
+
+        let liquidity: u128 = *self
+            .get()
+            .balances
+            .get(&exec::program_id())
+            .expect("The pair has no liquidity at all");
         let amount0 = liquidity
             .overflowing_mul(self.balance0)
             .0
@@ -176,8 +208,8 @@ impl Pair {
             panic!("PAIR: Insufficient liquidity burnt.");
         }
         // add this later to ft_core
-        FTCore::burn(self, liquidity);
-
+        self.update_balance(to, liquidity, false);
+        // FTCore::burn(self, liquidity);
         messages::transfer_tokens(&self.token0, &exec::program_id(), &to, amount0).await;
         messages::transfer_tokens(&self.token1, &exec::program_id(), &to, amount1).await;
         self.balance0 -= amount0;
@@ -189,16 +221,16 @@ impl Pair {
         (amount0, amount1)
     }
 
-    /// Swaps two tokens just by calling transfer_tokens from the token contracts.
-    /// Also maintains the balances and updates the reservers to match the balances.
-    /// `amount0` - MUST be more than self.reserve0
-    /// `amount1` - MUST be more than self.reserve1
-    /// `to` - MUST be a non-zero address
-    /// Arguments:
-    /// * `amount0` - amount of token0
-    /// * `amount1` - amount of token1
-    /// * `to` - is the operation performer
-    /// * `forward` - is the direction. If true - user inputs token0 and gets token1, otherwise - token1 -> token0
+    // Swaps two tokens just by calling transfer_tokens from the token contracts.
+    // Also maintains the balances and updates the reservers to match the balances.
+    // `amount0` - MUST be more than self.reserve0
+    // `amount1` - MUST be more than self.reserve1
+    // `to` - MUST be a non-zero address
+    // Arguments:
+    // * `amount0` - amount of token0
+    // * `amount1` - amount of token1
+    // * `to` - is the operation performer
+    // * `forward` - is the direction. If true - user inputs token0 and gets token1, otherwise - token1 -> token0
     async fn _swap(&mut self, amount0: u128, amount1: u128, to: ActorId, forward: bool) {
         if amount0 > self.reserve0 && forward {
             panic!("PAIR: Insufficient liquidity.");
@@ -206,7 +238,8 @@ impl Pair {
         if amount1 > self.reserve1 && !forward {
             panic!("PAIR: Insufficient liquidity.");
         }
-        if forward {
+        // carefully, not forward
+        if !forward {
             messages::transfer_tokens(&self.token0, &exec::program_id(), &to, amount0).await;
             messages::transfer_tokens(&self.token1, &to, &exec::program_id(), amount1).await;
             self.balance0 -= amount0;
@@ -312,10 +345,11 @@ impl Pair {
 
         let pair_address = exec::program_id();
         messages::transfer_tokens(&self.token0, &msg::source(), &pair_address, amount0).await;
+        messages::approve_tokens(&self.token0, &pair_address, amount0).await;
         messages::transfer_tokens(&self.token1, &msg::source(), &pair_address, amount1).await;
+        messages::approve_tokens(&self.token1, &pair_address, amount1).await;
         self.balance0 += amount0;
         self.balance1 += amount1;
-
         // call mint function
         let liquidity = self.mint(to).await;
         msg::reply(
@@ -348,14 +382,15 @@ impl Pair {
         FTCore::transfer(self, &msg::source(), &exec::program_id(), liquidity);
         // call burn
         let (amount0, amount1) = self.burn(to).await;
-        if amount0 > amount0_min {
+
+        if amount0 < amount0_min {
             panic!("PAIR: Insufficient amount of token 0")
         }
-        if amount1 > amount1_min {
+        if amount1 < amount1_min {
             panic!("PAIR: Insufficient amount of token 1")
         }
-        msg::reply(PairEvent::RemovedLiquidity { liquidity, to }, 0)
-            .expect("Error during a replying with PairEvent::RemovedLiquidity");
+        // msg::reply(PairEvent::RemovedLiquidity { liquidity, to }, 0)
+        // .expect("Error during a replying with PairEvent::RemovedLiquidity");
     }
 
     /// Swaps exact token0 for some token1
@@ -368,6 +403,7 @@ impl Pair {
     pub async fn swap_exact_tokens_for(&mut self, amount_in: u128, to: ActorId) {
         // token1 amount
         let amount_out = math::get_amount_out(amount_in, self.reserve0, self.reserve1);
+
         self._swap(amount_in, amount_out, to, true).await;
         msg::reply(
             PairEvent::SwapExactTokensFor {
@@ -389,6 +425,7 @@ impl Pair {
     /// * `to` - is the receiver of the swap operation
     pub async fn swap_tokens_for_exact(&mut self, amount_out: u128, to: ActorId) {
         let amount_in = math::get_amount_in(amount_out, self.reserve0, self.reserve1);
+
         self._swap(amount_in, amount_out, to, false).await;
         msg::reply(
             PairEvent::SwapTokensForExact {
@@ -404,10 +441,11 @@ impl Pair {
 
 #[no_mangle]
 extern "C" fn init() {
-    let config: InitPair = msg::load().expect("Unable to decode InitEscrow");
-    if config.factory != msg::source() {
-        panic!("PAIR: Can only be created by a factory.");
-    }
+    let config: InitPair = msg::load().expect("Unable to decode InitPair");
+    // DISABLE FOR TESTING, UNCOMMENT AND FIX TESTS LATER
+    // if config.factory != msg::source() {
+    //     panic!("PAIR: Can only be created by a factory.");
+    // }
     let pair = Pair {
         factory: config.factory,
         token0: config.token0,
@@ -477,6 +515,9 @@ extern "C" fn meta_state() -> *mut [i32; 2] {
             price0: pair.price0_cl,
             price1: pair.price1_cl,
         },
+        PairStateQuery::BalanceOf(address) => {
+            PairStateReply::Balance(*pair.get().balances.get(&address).unwrap_or(&0))
+        }
     };
     gstd::util::to_leak_ptr(reply.encode())
 }

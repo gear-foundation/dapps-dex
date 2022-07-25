@@ -1,4 +1,5 @@
 #![no_std]
+
 use codec::{Decode, Encode};
 use gstd::{prelude::*, ActorId};
 use scale_info::TypeInfo;
@@ -51,10 +52,6 @@ pub enum PairEvent {
         liquidity: u128,
         to: ActorId,
     },
-    RemovedLiquidity {
-        liquidity: u128,
-        to: ActorId,
-    },
     Sync {
         balance0: u128,
         balance1: u128,
@@ -83,11 +80,13 @@ pub enum PairStateQuery {
     TokenAddresses,
     Reserves,
     Prices,
+    BalanceOf(ActorId),
 }
 
 #[derive(Debug, Encode, Decode, TypeInfo)]
 pub enum PairStateReply {
-    TokenAddresses { token0: ActorId, token1: ActorId },
+    TokenAddresses { token0: TokenId, token1: TokenId },
     Reserves { reserve0: u128, reserve1: u128 },
     Prices { price0: u128, price1: u128 },
+    Balance(u128),
 }

@@ -13,7 +13,7 @@ pub struct InitFactory {
 
 #[derive(Debug, Encode, Decode, TypeInfo)]
 pub enum FactoryAction {
-    CreatePair(ActorId, ActorId),
+    CreatePair(TokenId, TokenId),
     SetFeeTo(ActorId),
     SetFeeToSetter(ActorId),
     FeeTo,
