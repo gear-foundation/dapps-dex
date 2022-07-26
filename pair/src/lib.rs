@@ -15,16 +15,24 @@ static ZERO_ID: ActorId = ActorId::zero();
 pub struct Pair {
     #[FTStateField]
     pub token: FTState,
+    // Factoty address which deployed this pair
     pub factory: ActorId,
+    // First FT contract address.
     pub token0: ActorId,
+    // Second FT contract address.
     pub token1: ActorId,
+    // Last timestamp when the reserves and balances were updated
     last_block_ts: u128,
+    // Balances of token0 and token1, to get rid of actually querying the balance from the contract.
     pub balance0: u128,
     pub balance1: u128,
+    // Token0 and token1 reserves.
     reserve0: u128,
     reserve1: u128,
+    // Token prices
     pub price0_cl: u128,
     pub price1_cl: u128,
+    // K which is equal to self.reserve0 * self.reserve1 which is used to amount calculations when performing a swap.
     pub k_last: u128,
 }
 
@@ -33,6 +41,7 @@ static mut PAIR: Option<Pair> = None;
 impl Pair {
     // INTERNAL METHODS
 
+    // A simple wrapper for balance calculations to facilitate mint & burn.
     fn update_balance(&mut self, to: ActorId, amount: u128, increase: bool) {
         self.get_mut()
             .allowances
@@ -67,14 +76,12 @@ impl Pair {
         let total_supply = self.get().total_supply;
         let liquidity: u128;
         if total_supply == 0 {
-            // Math.sqrt(amount0.mul(amount1)).sub(MINIMUM_LIQUIDITY);
             liquidity = amount0
                 .overflowing_mul(amount1)
                 .0
                 .sqrt()
                 .saturating_add(MINIMUM_LIQUIDITY);
-
-            // add this later to ft lib
+            // Lock a minimum liquidity to a zero address.
             self.update_balance(ZERO_ID, liquidity, true);
             // FTCore::mint(self, &ZERO_ID, liquidity);
         } else {
@@ -98,6 +105,7 @@ impl Pair {
         // FTCore::mint(self, &to, liquidity);
         self.update(self.balance0, self.balance1, self.reserve0, self.reserve1);
         if fee_on {
+            // Calculate the K which is the product of reserves.
             self.k_last = self.reserve0.overflowing_mul(self.reserve1).0;
         }
         liquidity
@@ -108,6 +116,8 @@ impl Pair {
     // Calculate the sqrt of current k using the reserves. Compare it.
     // If the current one is greater, than calculate the liquidity using the following formula:
     // liquidity = (total_supply * (root_k - last_root_k)) / (root_k * 5 + last_root_k).
+    // where root_k - is the sqrt of the current product of reserves, and last_root_k - is the sqrt of the previous product.
+    // Multiplication by 5 comes from the 1/6 of growrth is sqrt.
     // `reserve0` - MUST be a positive number
     // `reserve1` - MUST be a positive number
     // Arguments:
@@ -119,7 +129,9 @@ impl Pair {
         let fee_on = fee_to != ZERO_ID;
         if fee_on {
             if self.k_last != 0 {
+                // Calculate the sqrt of current K.
                 let root_k = reserve0.overflowing_mul(reserve1).0.sqrt();
+                // Get the sqrt of previous K.
                 let root_k_last = self.k_last.sqrt();
                 if root_k > root_k_last {
                     let numerator = self
@@ -127,6 +139,7 @@ impl Pair {
                         .total_supply
                         .overflowing_mul(root_k.saturating_sub(root_k_last))
                         .0;
+                    // Calculate the 1/6 of a fee is the fee is turned on.
                     let denominator = root_k.overflowing_mul(5).0.overflowing_add(root_k_last).0;
                     let liquidity = numerator.overflowing_div(denominator).0;
                     if liquidity > 0 {
@@ -154,6 +167,7 @@ impl Pair {
     fn update(&mut self, balance0: u128, balance1: u128, reserve0: u128, reserve1: u128) {
         let current_ts = (exec::block_timestamp() & 0xFFFFFFFF) as u32;
         let time_elapsed = current_ts as u128 - self.last_block_ts;
+        // Update the prices if we actually update the balances later.
         if time_elapsed > 0 && reserve0 != 0 && reserve1 != 0 {
             self.price0_cl = self
                 .price0_cl
@@ -216,6 +230,7 @@ impl Pair {
         self.balance1 -= amount1;
         self.update(self.balance0, self.balance1, self.reserve0, self.reserve1);
         if fee_on {
+            // If fee is on recalculate the K.
             self.k_last = self.reserve0.overflowing_mul(self.reserve1).0;
         }
         (amount0, amount1)
@@ -274,6 +289,7 @@ impl Pair {
             self.balance1.saturating_sub(self.reserve1),
         )
         .await;
+        // Update the balances.
         self.balance0 -= self.reserve0;
         self.balance1 -= self.reserve1;
         msg::reply(
@@ -322,6 +338,7 @@ impl Pair {
     ) {
         let amount0: u128;
         let amount1: u128;
+        // Check the amounts provided with the respect to the reserves to find the best amount of tokens0/1 to be added.
         if self.reserve0 == 0 && self.reserve1 == 0 {
             amount0 = amount0_desired;
             amount1 = amount1_desired;
@@ -348,6 +365,7 @@ impl Pair {
         messages::approve_tokens(&self.token0, &pair_address, amount0).await;
         messages::transfer_tokens(&self.token1, &msg::source(), &pair_address, amount1).await;
         messages::approve_tokens(&self.token1, &pair_address, amount1).await;
+        // Update the balances.
         self.balance0 += amount0;
         self.balance1 += amount1;
         // call mint function
@@ -380,7 +398,7 @@ impl Pair {
         to: ActorId,
     ) {
         FTCore::transfer(self, &msg::source(), &exec::program_id(), liquidity);
-        // call burn
+        // Burn and get the optimal amount of burned tokens.
         let (amount0, amount1) = self.burn(to).await;
 
         if amount0 < amount0_min {

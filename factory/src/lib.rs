@@ -14,7 +14,6 @@ pub struct Factory {
     // Who gets the fee
     pub fee_to: ActorId,
     pub fee_to_setter: ActorId,
-    pub all_pairs: Vec<ActorId>,
     // (tokenA, tokenB) -> pair_address mapping
     pub pairs: BTreeMap<(ActorId, ActorId), ActorId>,
 }
@@ -96,7 +95,6 @@ impl Factory {
 
         self.pairs.insert((token_a, token_b), program_id);
 
-        self.all_pairs.push(program_id);
         msg::reply(
             FactoryEvent::PairCreated {
                 token_a,
@@ -167,7 +165,7 @@ extern "C" fn meta_state() -> *mut [i32; 2] {
             }
         }
         FactoryStateQuery::AllPairsLength => FactoryStateReply::AllPairsLength {
-            length: factory.all_pairs.len() as u32,
+            length: factory.pairs.len() as u32,
         },
         FactoryStateQuery::Owner => FactoryStateReply::Owner {
             address: factory.owner_id,
