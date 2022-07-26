@@ -111,30 +111,47 @@ pub enum PairAction {
 #[derive(Debug, Encode, Decode, TypeInfo)]
 pub enum PairEvent {
     AddedLiquidity {
+        /// The amount of token0 added to liquidity.
         amount0: u128,
+        /// The amount of token1 added to liquidity.
         amount1: u128,
+        /// Overall liquidity amount that has been added.
         liquidity: u128,
+        /// Liquidity provider.
         to: ActorId,
     },
     Sync {
+        /// The balance of token0.
         balance0: u128,
+        /// The balance of token1.
         balance1: u128,
+        /// The amount of token0 stored on the contract.
         reserve0: u128,
+        /// The amount of token1 stored on the contract.
         reserve1: u128,
     },
     Skim {
+        /// Fee collector.
         to: ActorId,
+        /// The amount of extra token0.
         amount0: u128,
+        /// The amount of extra token1.
         amount1: u128,
     },
     SwapExactTokensFor {
+        /// Swap performer.
         to: ActorId,
+        /// The amount of token0 a user is providing.
         amount_in: u128,
+        /// The amount of token1 a user is getting.
         amount_out: u128,
     },
     SwapTokensForExact {
+        /// Swap performed.
         to: ActorId,
+        /// The amount of token0 a user is getting.
         amount_in: u128,
+        /// The amount of token1 a user is providing.
         amount_out: u128,
     },
 }
