@@ -15,7 +15,6 @@ pub struct InitFactory {
     pub pair_code_hash: [u8; 32],
 }
 
-
 #[derive(Debug, Encode, Decode, TypeInfo)]
 pub enum FactoryAction {
     /// Creates an exchange pair
