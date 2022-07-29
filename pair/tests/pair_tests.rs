@@ -13,6 +13,7 @@ pub const TOKEN_0_ID: u64 = 111;
 pub const TOKEN_0_AMOUNT: u128 = 10000;
 pub const TOKEN_1_ID: u64 = 112;
 pub const TOKEN_1_AMOUNT: u128 = 20000;
+pub const FACTORY_ID: u64 = 1;
 pub const PAIR_ID: u64 = 2;
 // liquidity params
 pub const TOKEN_0_LIQ: u128 = 1000;

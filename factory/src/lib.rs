@@ -99,8 +99,8 @@ impl Factory {
             FactoryEvent::PairCreated {
                 token_a,
                 token_b,
-                pair_address: ZERO_ID,
-                pairs_length: 10,
+                pair_address: program_id,
+                pairs_length: self.pairs.len() as u32,
             },
             0,
         )
@@ -111,6 +111,9 @@ impl Factory {
 #[no_mangle]
 extern "C" fn init() {
     let config: InitFactory = msg::load().expect("Unable to decode InitEscrow");
+    if config.fee_to_setter == ZERO_ID {
+        panic!("FACTORY: Fee setter can not be a zero address.");
+    }
     let factory = Factory {
         fee_to_setter: config.fee_to_setter,
         owner_id: msg::source(),
