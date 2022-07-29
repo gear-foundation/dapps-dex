@@ -12,7 +12,7 @@
 [build_badge]: https://github.com/gear-dapps/app/workflows/Build/badge.svg
 [build_href]: https://github.com/gear-dapps/app/actions/workflows/build.yml
 
-[lic_badge]: https://img.shields.io/badge/License-GPL%203.0-success
+[lic_badge]: https://img.shields.io/badge/License-MIT-success
 [lic_href]: https://github.com/gear-dapps/app/blob/master/LICENSE
 
 <!-- Description starts here -->
