@@ -21,7 +21,7 @@ pub async fn get_fee_to(factory_address: &ActorId) -> ActorId {
 /// Transfers token from the contract
 /// `token_address` - MUST be a non-zero address
 /// `from` - MUST be a non-zero address
-/// `token_maount` - MUST be a positive number
+/// `token_maount` - MUST be a non-zero number
 /// Arguments:
 /// * `token_address` - the address of FT contract
 /// * `from` - tokens' sender

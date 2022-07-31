@@ -44,8 +44,8 @@ impl Pair {
                 .sqrt()
                 .saturating_add(MINIMUM_LIQUIDITY);
             // Lock a minimum liquidity to a zero address.
-            self.update_balance(ZERO_ID, liquidity, true);
-            // FTCore::mint(self, &ZERO_ID, liquidity);
+            self.update_balance(ActorId::zero(), liquidity, true);
+            // FTCore::mint(self, &ActorId::zero(), liquidity);
         } else {
             liquidity = cmp::min(
                 amount0
@@ -80,30 +80,27 @@ impl Pair {
     // liquidity = (total_supply * (root_k - last_root_k)) / (root_k * 5 + last_root_k).
     // where root_k - is the sqrt of the current product of reserves, and last_root_k - is the sqrt of the previous product.
     // Multiplication by 5 comes from the 1/6 of growrth is sqrt.
-    // `reserve0` - MUST be a positive number
-    // `reserve1` - MUST be a positive number
     // Arguments:
     // * `reserve0` - the available amount of token0
     // * `reserve1` - the available amount of token1
     pub async fn mint_fee(&mut self, reserve0: u128, reserve1: u128) -> bool {
         // get fee_to from factory
         let fee_to: ActorId = messages::get_fee_to(&self.factory).await;
-        let fee_on = fee_to != ZERO_ID;
+        let fee_on = fee_to != ActorId::zero();
         if fee_on {
             if self.k_last != 0 {
                 // Calculate the sqrt of current K.
-                let root_k = reserve0.overflowing_mul(reserve1).0.sqrt();
+                let root_k = reserve0.wrapping_mul(reserve1).sqrt();
                 // Get the sqrt of previous K.
                 let root_k_last = self.k_last.sqrt();
                 if root_k > root_k_last {
                     let numerator = self
                         .get()
                         .total_supply
-                        .overflowing_mul(root_k.saturating_sub(root_k_last))
-                        .0;
+                        .wrapping_mul(root_k.saturating_sub(root_k_last));
                     // Calculate the 1/6 of a fee is the fee is turned on.
-                    let denominator = root_k.overflowing_mul(5).0.overflowing_add(root_k_last).0;
-                    let liquidity = numerator.overflowing_div(denominator).0;
+                    let denominator = root_k.wrapping_mul(5).wrapping_add(root_k_last);
+                    let liquidity = numerator.wrapping_div(denominator);
                     if liquidity > 0 {
                         self.update_balance(fee_to, liquidity, true);
                         // FTCore::mint(self, &fee_to, liquidity);
@@ -117,10 +114,6 @@ impl Pair {
     }
 
     // Updates reserves and, on the first call per block, price accumulators
-    // `balance0` - MUST be a positive number
-    // `balance1` - MUST be a positive number
-    // `reserve0` - MUST be a positive number
-    // `reserve1` - MUST be a positive number
     // Arguments:
     // * `balance0` - token0 balance
     // * `balance1` - token1 balance
@@ -131,26 +124,16 @@ impl Pair {
         let time_elapsed = current_ts as u128 - self.last_block_ts;
         // Update the prices if we actually update the balances later.
         if time_elapsed > 0 && reserve0 != 0 && reserve1 != 0 {
-            self.price0_cl = self
-                .price0_cl
-                .overflowing_add(
-                    self.price0_cl
-                        .overflowing_div(reserve0)
-                        .0
-                        .overflowing_mul(time_elapsed)
-                        .0,
-                )
-                .0;
-            self.price1_cl = self
-                .price1_cl
-                .overflowing_add(
-                    self.price1_cl
-                        .overflowing_div(reserve1)
-                        .0
-                        .overflowing_mul(time_elapsed)
-                        .0,
-                )
-                .0;
+            self.price0_cl = self.price0_cl.wrapping_add(
+                self.price0_cl
+                    .wrapping_div(reserve0)
+                    .wrapping_mul(time_elapsed),
+            );
+            self.price1_cl = self.price1_cl.wrapping_add(
+                self.price1_cl
+                    .wrapping_div(reserve1)
+                    .wrapping_mul(time_elapsed),
+            );
         }
         self.reserve0 = balance0;
         self.reserve1 = balance1;
@@ -171,15 +154,12 @@ impl Pair {
             .get(&exec::program_id())
             .expect("The pair has no liquidity at all");
         let amount0 = liquidity
-            .overflowing_mul(self.balance0)
-            .0
-            .overflowing_div(self.get().total_supply)
-            .0;
+            .wrapping_mul(self.balance0)
+            .wrapping_div(self.get().total_supply);
         let amount1 = liquidity
-            .overflowing_mul(self.balance1)
-            .0
-            .overflowing_div(self.get().total_supply)
-            .0;
+            .wrapping_mul(self.balance1)
+            .wrapping_div(self.get().total_supply);
+
         if amount0 == 0 || amount1 == 0 {
             panic!("PAIR: Insufficient liquidity burnt.");
         }
@@ -193,7 +173,7 @@ impl Pair {
         self.update(self.balance0, self.balance1, self.reserve0, self.reserve1);
         if fee_on {
             // If fee is on recalculate the K.
-            self.k_last = self.reserve0.overflowing_mul(self.reserve1).0;
+            self.k_last = self.reserve0.wrapping_mul(self.reserve1);
         }
         (amount0, amount1)
     }

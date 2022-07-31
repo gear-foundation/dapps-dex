@@ -7,7 +7,6 @@ pub const USER: u64 = 10;
 pub const FEE_SETTER: u64 = 11;
 pub const NEW_FEE_SETTER: u64 = 12;
 pub const NEW_FEE_TO: u64 = 13;
-pub const ZERO_ID: ActorId = ActorId::zero();
 pub const TOKEN_A: u64 = 101;
 pub const TOKEN_B: u64 = 102;
 
@@ -44,8 +43,8 @@ fn set_fee_to_failures() {
     // MUST fail since the USER is not a fee setter
     let res = utils::set_fee_to(&factory, USER, ActorId::from(NEW_FEE_TO));
     assert!(res.main_failed());
-    // MUST fail since the NEW_FEE_TO a ZERO address
-    let res = utils::set_fee_to(&factory, USER, ZERO_ID);
+    // MUST fail since the NEW_FEE_TO a ActorId::zero() address
+    let res = utils::set_fee_to(&factory, USER, ActorId::zero());
     assert!(res.main_failed());
 }
 
@@ -69,8 +68,8 @@ fn set_fee_to_setter_failures() {
     // MUST fail since the USER is not a fee setter
     let res = utils::set_fee_to_setter(&factory, USER, ActorId::from(NEW_FEE_SETTER));
     assert!(res.main_failed());
-    // MUST fail since the NEW_FEE_TO_SETTER a ZERO address
-    let res = utils::set_fee_to_setter(&factory, FEE_SETTER, ZERO_ID);
+    // MUST fail since the NEW_FEE_TO_SETTER a ActorId::zero() address
+    let res = utils::set_fee_to_setter(&factory, FEE_SETTER, ActorId::zero());
     assert!(res.main_failed());
 }
 
@@ -102,8 +101,8 @@ fn create_pair_failures() {
     let token_b = ActorId::from(TOKEN_B);
     // MUST fail since token_a and token_b share the same address
     utils::create_pair(&factory, USER, token_a, token_a);
-    // MUST fail since token_a is a ZERO address
-    utils::create_pair(&factory, USER, ZERO_ID, token_a);
+    // MUST fail since token_a is a ActorId::zero() address
+    utils::create_pair(&factory, USER, ActorId::zero(), token_a);
     // MUST fail since the pair already exists
     utils::create_pair(&factory, USER, token_a, token_b);
     utils::create_pair(&factory, USER, token_a, token_b);

@@ -1,5 +1,5 @@
 use dex_factory_io::*;
-use dex_pair_io::TokenId;
+use dex_pair_io::FungibleId;
 use dex_pair_io::*;
 use ft_io::*;
 use gstd::{prelude::*, ActorId};
@@ -47,8 +47,8 @@ pub fn init_pair(
     sys: &System,
     user: u64,
     factory: ActorId,
-    token0: TokenId,
-    token1: TokenId,
+    token0: FungibleId,
+    token1: FungibleId,
 ) -> Program {
     sys.init_logger();
     let pair_program = Program::current(sys);

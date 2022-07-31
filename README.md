@@ -1,19 +1,19 @@
-<p align="center">
-  <a href="https://gitpod.io/#https://github.com/gear-dapps/app" target="_blank">
-    <img src="https://gitpod.io/button/open-in-gitpod.svg" width="240" alt="Gitpod">
+<p  align="center">
+  <a  href="https://gitpod.io/#https://github.com/gear-dapps/app"  target="_blank">
+    <img  src="https://gitpod.io/button/open-in-gitpod.svg"  width="240"  alt="Gitpod">
   </a>
 </p>
 
-# Gear Template App
-
+#  Gear Template App
 [![Build][build_badge]][build_href]
+
 [![License][lic_badge]][lic_href]
 
-[build_badge]: https://github.com/gear-dapps/app/workflows/Build/badge.svg
-[build_href]: https://github.com/gear-dapps/app/actions/workflows/build.yml
+[build_badge]:  https://github.com/gear-dapps/app/workflows/Build/badge.svg
+[build_href]:  https://github.com/gear-dapps/app/actions/workflows/build.yml
 
-[lic_badge]: https://img.shields.io/badge/License-MIT-success
-[lic_href]: https://github.com/gear-dapps/app/blob/master/LICENSE
+[lic_badge]:  https://img.shields.io/badge/License-MIT-success
+[lic_href]:  https://github.com/gear-dapps/app/blob/master/LICENSE
 
 <!-- Description starts here -->
 
@@ -23,26 +23,21 @@ Template application. Use this repository as a template when creating a new appl
 
 <!-- End of description -->
 
-## Initial checklist after creating a new repo
+##  Prebuilt Binaries
 
-- [ ] Change app name in `Cargo.toml`
-- [ ] Fix Gitpod/badge/releases links in `README.md` (replace `gear-academy/app` with `gear-academy/<my-new-app>`)
-- [ ] Add description in `README.md`
-- [ ] Remove this section
+Raw, optimized, and meta WASM binaries can be found in the [Releases section](https://github.com/gear-dapps/dex/releases/tag/build).
 
-## Prebuilt Binaries
+##  Building Locally
 
-Raw, optimized, and meta WASM binaries can be found in the [Releases section](https://github.com/gear-dapps/app/releases/tag/build).
-
-## Building Locally
-
-### ⚙️ Install Rust
+###  ⚙️ Install Rust
 
 ```shell
+
 curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh
+
 ```
 
-### ⚒️ Add specific toolchains
+###  ⚒️ Add specific toolchains
 
 ```shell
 rustup toolchain add nightly
@@ -55,7 +50,7 @@ rustup target add wasm32-unknown-unknown --toolchain nightly
 make init
 ```
 
-### 🏗️ Build
+###  🏗️ Build
 
 ```shell
 cargo build --release
@@ -67,7 +62,7 @@ cargo build --release
 make build
 ```
 
-### ✅ Run tests
+###  ✅ Run tests
 
 ```shell
 cargo test --release
@@ -79,7 +74,7 @@ cargo test --release
 make test
 ```
 
-### 🚀 Run everything with one command
+###  🚀 Run everything with one command
 
 ```shell
 make all
@@ -91,6 +86,6 @@ make all
 make
 ```
 
-## License
+##  License
 
-The source code is licensed under [GPL v3.0 license](LICENSE).
+The source code is licensed under [MIT license](LICENSE).

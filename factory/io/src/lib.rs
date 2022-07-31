@@ -3,7 +3,7 @@ use codec::{Decode, Encode};
 use gstd::{prelude::*, ActorId};
 use scale_info::TypeInfo;
 
-pub type TokenId = ActorId;
+pub type FungibleId = ActorId;
 
 /// Initializes a factory.
 ///
@@ -21,10 +21,10 @@ pub enum FactoryAction {
     ///
     /// Deploys a pair exchange contract and saves the info about it.
     /// # Requirements:
-    /// * both `TokenId` MUST be non-zero addresss and represent the actual fungible-token contracts
+    /// * both `FungibleId` MUST be non-zero addresss and represent the actual fungible-token contracts
     ///
     /// On success returns `FactoryEvery::PairCreated`
-    CreatePair(TokenId, TokenId),
+    CreatePair(FungibleId, FungibleId),
 
     /// Sets fee_to variable
     ///
@@ -58,9 +58,9 @@ pub enum FactoryAction {
 pub enum FactoryEvent {
     PairCreated {
         /// The first token address
-        token_a: TokenId,
+        token_a: FungibleId,
         /// The second token address
-        token_b: TokenId,
+        token_b: FungibleId,
         /// Pair address (the pair exchange contract).
         pair_address: ActorId,
         /// The amount of pairs that already were deployed though this factory.
@@ -75,7 +75,10 @@ pub enum FactoryEvent {
 pub enum FactoryStateQuery {
     FeeTo,
     FeeToSetter,
-    PairAddress { token_a: TokenId, token_b: TokenId },
+    PairAddress {
+        token_a: FungibleId,
+        token_b: FungibleId,
+    },
     AllPairsLength,
     Owner,
 }

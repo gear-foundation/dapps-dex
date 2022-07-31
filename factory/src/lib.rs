@@ -4,8 +4,6 @@ use dex_factory_io::*;
 use dex_pair_io::*;
 use gstd::{exec, msg, prelude::*, prog::ProgramGenerator, ActorId};
 
-const ZERO_ID: ActorId = ActorId::zero();
-
 #[derive(Debug, Default)]
 pub struct Factory {
     // CodeHash to deploy a pair contract from factory.
@@ -30,7 +28,7 @@ impl Factory {
         if self.fee_to_setter != msg::source() {
             panic!("FACTORY: Setting fee_to is forbidden for this address");
         }
-        if fee_to == ZERO_ID {
+        if fee_to == ActorId::zero() {
             panic!("FACTORY: Fee_to can not be a ZERO address");
         }
         self.fee_to = fee_to;
@@ -48,7 +46,7 @@ impl Factory {
         if self.fee_to_setter != msg::source() {
             panic!("FACTORY: Changing fee_to_setter is forbidden for this address");
         }
-        if fee_to_setter == ZERO_ID {
+        if fee_to_setter == ActorId::zero() {
             panic!("FACTORY: Fee_to_setter can not be a ZERO address");
         }
         self.fee_to_setter = fee_to_setter;
@@ -72,7 +70,7 @@ impl Factory {
         if token_a == token_b {
             panic!("FACTORY: Identical token addresses");
         }
-        if token_a == ZERO_ID || token_b == ZERO_ID {
+        if token_a == ActorId::zero() || token_b == ActorId::zero() {
             panic!("FACTORY: One of your addresses is a ZERO one");
         }
         if self.pairs.contains_key(&(token_a, token_b)) {
@@ -111,7 +109,7 @@ impl Factory {
 #[no_mangle]
 extern "C" fn init() {
     let config: InitFactory = msg::load().expect("Unable to decode InitEscrow");
-    if config.fee_to_setter == ZERO_ID {
+    if config.fee_to_setter == ActorId::zero() {
         panic!("FACTORY: Fee setter can not be a zero address.");
     }
     let factory = Factory {

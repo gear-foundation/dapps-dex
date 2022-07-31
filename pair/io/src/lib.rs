@@ -4,21 +4,21 @@ use codec::{Decode, Encode};
 use gstd::{prelude::*, ActorId};
 use scale_info::TypeInfo;
 
-pub type TokenId = ActorId;
+pub type FungibleId = ActorId;
 
 /// Initializes a pair.
 ///
 /// # Requirements:
-/// * both `TokenId` MUST be fungible token contracts with a non-zero address.
+/// * both `FungibleId` MUST be fungible token contracts with a non-zero address.
 /// * factory MUST be a non-zero address.
 #[derive(Debug, Encode, Decode, TypeInfo)]
 pub struct InitPair {
     /// Factory address which deployed this pair.
     pub factory: ActorId,
     /// The first FT token address.
-    pub token0: TokenId,
+    pub token0: FungibleId,
     /// The second FT token address.
-    pub token1: TokenId,
+    pub token1: FungibleId,
 }
 
 #[derive(Debug, Encode, Decode, TypeInfo)]
@@ -27,7 +27,7 @@ pub enum PairAction {
     ///
     /// Adds a specified amount of both tokens to the pair contract.
     /// # Requirements:
-    /// * all the values MUST non-zero positive numbers.
+    /// * all the values MUST non-zero numbers.
     /// * `to` MUST be a non-zero adddress.
     ///
     /// On success returns `PairEvent::AddedLiquidity`.
@@ -48,7 +48,7 @@ pub enum PairAction {
     ///
     /// Removes a specified amount of liquidity from the pair contact.
     /// # Requirements:
-    /// * all the values MUST non-zero positive numbers.
+    /// * all the values MUST non-zero numbers.
     /// * `to` MUST be a non-zero adddress.
     ///
     /// On success returns `PairEvent::RemovedLiquidity`.
@@ -82,7 +82,7 @@ pub enum PairAction {
     /// Swaps the provided amount of token 0 for token 1.
     /// Requirements:
     /// * `to` - MUST be a non-zero address.
-    /// * `amount_in` - MUST be a positive number and less than the liquidity of token 0.
+    /// * `amount_in` - MUST be a non-zero number and less than the liquidity of token 0.
     ///
     /// On success returns `PairEvent::SwapExactTokensFor`.
     SwapExactTokensFor {
@@ -97,7 +97,7 @@ pub enum PairAction {
     /// Swaps the provided amount of token 1 for token 0.
     /// Requirements:
     /// * `to` - MUST be a non-zero address.
-    /// * `amount_out` - MUST be a positive number and less than the liquidity of token 1.
+    /// * `amount_out` - MUST be a non-zero number and less than the liquidity of token 1.
     ///
     /// On sucess returns `PairEvent::SwapTokensForExact`.
     SwapTokensForExact {
@@ -166,8 +166,17 @@ pub enum PairStateQuery {
 
 #[derive(Debug, Encode, Decode, TypeInfo)]
 pub enum PairStateReply {
-    TokenAddresses { token0: TokenId, token1: TokenId },
-    Reserves { reserve0: u128, reserve1: u128 },
-    Prices { price0: u128, price1: u128 },
+    TokenAddresses {
+        token0: FungibleId,
+        token1: FungibleId,
+    },
+    Reserves {
+        reserve0: u128,
+        reserve1: u128,
+    },
+    Prices {
+        price0: u128,
+        price1: u128,
+    },
     Balance(u128),
 }

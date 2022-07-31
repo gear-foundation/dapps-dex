@@ -19,7 +19,6 @@ pub const PAIR_ID: u64 = 2;
 pub const TOKEN_0_LIQ: u128 = 1000;
 pub const TOKEN_1_LIQ: u128 = 1000;
 pub const LIQUIDITY: u128 = 2000;
-pub const ZERO_ID: ActorId = ActorId::zero();
 
 fn pre_test(sys: &System, token0_id: u64, token1_id: u64) -> Program {
     let _factory = utils::init_factory(sys, USER, FEE_SETTER);
@@ -36,7 +35,7 @@ fn pre_test(sys: &System, token0_id: u64, token1_id: u64) -> Program {
     assert!(res.contains(&(
         USER,
         FTEvent::Transfer {
-            from: ZERO_ID,
+            from: ActorId::zero(),
             to: ActorId::from(USER),
             amount: TOKEN_0_AMOUNT,
         }
@@ -69,7 +68,7 @@ fn pre_test(sys: &System, token0_id: u64, token1_id: u64) -> Program {
     assert!(res.contains(&(
         USER,
         FTEvent::Transfer {
-            from: ZERO_ID,
+            from: ActorId::zero(),
             to: ActorId::from(USER),
             amount: TOKEN_1_AMOUNT,
         }

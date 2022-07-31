@@ -10,7 +10,6 @@ pub mod math;
 pub mod messages;
 
 const MINIMUM_LIQUIDITY: u128 = 1000;
-static ZERO_ID: ActorId = ActorId::zero();
 
 #[derive(Debug, Default, FTStateKeeper, FTCore, FTMetaState)]
 pub struct Pair {
@@ -72,7 +71,7 @@ impl Pair {
             },
             0,
         )
-        .expect("Error during a replying with PairEvent::Sync");
+        .expect("Error during a replying with PairEvent::Skim");
     }
 
     /// Forces reserves to match balances.
