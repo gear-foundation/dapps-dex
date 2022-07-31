@@ -76,13 +76,11 @@ impl Pair {
 
     /// Forces reserves to match balances.
     pub async fn sync(&mut self) {
-        let balance0 = messages::get_balance(&self.token0, &exec::program_id()).await;
-        let balance1 = messages::get_balance(&self.token1, &exec::program_id()).await;
-        self.update(balance0, balance1, self.reserve0, self.reserve1);
+        self.update(self.balance0, self.balance1, self.reserve0, self.reserve1);
         msg::reply(
             PairEvent::Sync {
-                balance0,
-                balance1,
+                balance0: self.balance0,
+                balance1: self.balance1,
                 reserve0: self.reserve0,
                 reserve1: self.reserve1,
             },

@@ -162,7 +162,7 @@ extern "C" fn meta_state() -> *mut [i32; 2] {
                 (token_a, token_b)
             };
             FactoryStateReply::PairAddress {
-                address: *factory.pairs.get(&(t1, t2)).expect("No such token pair"),
+                address: factory.pairs.get(&(t1, t2)).cloned().unwrap_or_default(),
             }
         }
         FactoryStateQuery::AllPairsLength => FactoryStateReply::AllPairsLength {

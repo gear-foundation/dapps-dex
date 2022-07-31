@@ -60,21 +60,3 @@ pub async fn approve_tokens(token_address: &ActorId, to: &ActorId, token_amount:
     .await
     .expect("Error in approve");
 }
-
-/// Get the balance of an account from a FT contract
-/// `token_address` - MUST be a non-zero address
-/// `account` - MUST be a non-zero address
-/// Arguments:
-/// * `token_address` - the address of FT contract
-/// * `account` - account address
-pub async fn get_balance(token_address: &ActorId, account: &ActorId) -> u128 {
-    let balance_response: FTEvent =
-        msg::send_for_reply_as(*token_address, FTAction::BalanceOf(*account), 0)
-            .unwrap()
-            .await
-            .expect("Error in balanceOf");
-    if let FTEvent::Balance(balance_response) = balance_response {
-        return balance_response;
-    }
-    0
-}

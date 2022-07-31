@@ -39,8 +39,7 @@ impl Pair {
         let liquidity: u128;
         if total_supply == 0 {
             liquidity = amount0
-                .overflowing_mul(amount1)
-                .0
+                .wrapping_mul(amount1)
                 .sqrt()
                 .saturating_add(MINIMUM_LIQUIDITY);
             // Lock a minimum liquidity to a zero address.
@@ -49,15 +48,11 @@ impl Pair {
         } else {
             liquidity = cmp::min(
                 amount0
-                    .overflowing_mul(total_supply)
-                    .0
-                    .overflowing_div(self.reserve0)
-                    .0,
+                    .wrapping_mul(total_supply)
+                    .wrapping_div(self.reserve0),
                 amount1
-                    .overflowing_mul(total_supply)
-                    .0
-                    .overflowing_div(self.reserve1)
-                    .0,
+                    .wrapping_mul(total_supply)
+                    .wrapping_div(self.reserve1),
             )
         }
         if liquidity == 0 {
@@ -68,7 +63,7 @@ impl Pair {
         self.update(self.balance0, self.balance1, self.reserve0, self.reserve1);
         if fee_on {
             // Calculate the K which is the product of reserves.
-            self.k_last = self.reserve0.overflowing_mul(self.reserve1).0;
+            self.k_last = self.reserve0.wrapping_mul(self.reserve1);
         }
         liquidity
     }
