@@ -447,8 +447,8 @@ dependencies = [
 
 [[package]]
 name = "gear-lib-derive"
-version = "0.1.0"
-source = "git+https://github.com/gear-academy/gear-lib.git#42bac1d343aa3576d5158b63d4de73b988f5ed29"
+version = "0.2.0"
+source = "git+https://github.com/gear-academy/gear-lib.git#de4f599779809c8167ed6ead505ed665da6bcba4"
 dependencies = [
  "gear-lib-macros",
  "proc-macro2",
@@ -459,7 +459,7 @@ dependencies = [
 [[package]]
 name = "gear-lib-macros"
 version = "0.1.0"
-source = "git+https://github.com/gear-academy/gear-lib.git#42bac1d343aa3576d5158b63d4de73b988f5ed29"
+source = "git+https://github.com/gear-academy/gear-lib.git#de4f599779809c8167ed6ead505ed665da6bcba4"
 
 [[package]]
 name = "gear-wasm-builder"
