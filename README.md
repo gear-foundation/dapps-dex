@@ -15,6 +15,7 @@
 [lic_badge]:  https://img.shields.io/badge/License-MIT-success
 [lic_href]:  https://github.com/gear-dapps/app/blob/master/LICENSE
 
+A decentralized exchange (DEX for short) is a peer-to-peer marketplace where transactions occur directly between crypto traders.
 
 ##  Prebuilt Binaries
 
