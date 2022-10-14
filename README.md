@@ -5,8 +5,8 @@
 </p>
 
 #  DEX (Decentralized Exchange)
-[![Build][build_badge]][build_href]
 
+[![Build][build_badge]][build_href]
 [![License][lic_badge]][lic_href]
 
 [build_badge]:  https://github.com/gear-dapps/dex/workflows/Build/badge.svg
@@ -18,7 +18,7 @@
 
 ##  Prebuilt Binaries
 
-Raw, optimized, and meta WASM binaries can be found in the [Releases section](https://github.com/gear-dapps/dex/releases/tag/build).
+Raw, optimized, and meta WASM binaries can be found in the [Releases section](https://github.com/gear-dapps/dex/releases).
 
 ##  Building Locally
 
@@ -81,4 +81,4 @@ make
 
 ##  License
 
-The source code is licensed under [MIT license](LICENSE).
+The source code is licensed under the [MIT license](LICENSE).
