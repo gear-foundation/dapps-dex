@@ -21,6 +21,21 @@ pub struct InitPair {
     pub token1: FungibleId,
 }
 
+#[derive(Encode, Decode, TypeInfo, Debug)]
+pub enum MessageAction {
+    Message {
+        transaction_id: u64,
+        payload: PairAction,
+    }
+}
+
+#[derive(Encode, TypeInfo)]
+pub enum MessageReply {
+    // Ok(PairEvent),
+    Ok,
+    Err,
+}
+
 #[derive(Debug, Encode, Decode, TypeInfo)]
 pub enum PairAction {
     /// Adds liquidity to the pair.
