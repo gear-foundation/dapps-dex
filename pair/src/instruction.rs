@@ -1,6 +1,9 @@
 use crate::H256;
-use gstd::{msg, ActorId};
+use gear_lib::non_fungible_token::token;
+use gstd::{msg, ActorId, prelude::*};
 use ft_io::*;
+use ft_main_io::*;
+use ft_logic_io::*;
 
 
 #[derive(Debug)]
@@ -15,15 +18,15 @@ pub enum InstructionState {
 pub struct Instruction {
     state: InstructionState,
     address: ActorId,
-    transaction: FTAction,
-    compensation: Option<FTAction>,
+    transaction: FTokenAction,
+    compensation: Option<FTokenAction>,
 }
 
 impl Instruction {
     pub fn new(
         address: ActorId,
-        transaction: FTAction,
-        compensation: Option<FTAction>
+        transaction: FTokenAction,
+        compensation: Option<FTokenAction>
     ) -> Self {
         Instruction {
             state: InstructionState::ScheduledRun,
@@ -36,11 +39,21 @@ impl Instruction {
     pub async fn start(&mut self) -> Result<(), ()> {
         match self.state {
             InstructionState::ScheduledRun => {
-                msg::send_for_reply_as::<_, FTEvent>(self.address, self.transaction, 0)
+                // Right now it's FTokenEvent, but should be moved
+                // LACKING CLONE OR COPY HERE :)
+                let result = msg::send_for_reply_as::<_, FTokenEvent>(self.address, self.transaction, 0)
                     .expect("Error in sending a message in instruction")
                     .await;
-                self.state = InstructionState::ScheduledAbort;
-                Ok(())
+                match result {
+                    Ok(FTokenEvent::Ok) => {
+                        self.state = InstructionState::ScheduledAbort;
+                        Ok(())
+                    }
+                    _ => {
+                        self.state = InstructionState::RunWithError;
+                        Err(())
+                    }
+                }
             }
             InstructionState::RunWithError => Err(()),
             _ => Ok(())
@@ -50,7 +63,7 @@ impl Instruction {
     pub async fn abort(&mut self) -> Result<(), ()> {
         match self.state {
             InstructionState::ScheduledAbort => {
-                msg::send_for_reply_as::<_, FTEvent>(
+                let result = msg::send_for_reply_as::<_, FTokenEvent>(
                     self.address,
                     self.compensation
                         .as_ref()
@@ -59,8 +72,13 @@ impl Instruction {
                 )
                 .expect("Error in sending a compensation message in instruction")
                 .await;
-                self.state = InstructionState::Finished;
-                Ok(())
+                match result {
+                    Ok(FTokenEvent::Ok) => {
+                        self.state = InstructionState::Finished;
+                        Ok(())
+                    }
+                    _ => Err(()),
+                }
             }
             InstructionState::Finished => Ok(()),
             _ => Err(())
@@ -69,6 +87,7 @@ impl Instruction {
 }
 
 pub fn create_forward_transfer_instruction(
+    transaction_id: u64,
     token_address: &ActorId,
     from: &ActorId,
     to: &ActorId,
@@ -76,20 +95,27 @@ pub fn create_forward_transfer_instruction(
 ) -> Instruction {
     Instruction::new(
         *token_address,
-        FTAction::Transfer {
-            from: *from,
-            to: *to,
-            amount: token_amount,
+        FTokenAction::Message {
+            transaction_id,
+            payload: Action::Transfer {
+                sender: *from,
+                recipient: *to,
+                amount: token_amount,
+            }.encode(),
         },
-        Some(FTAction::Transfer {
-            from: *to,
-            to: *from,
-            amount: token_amount,
+        Some(FTokenAction::Message {
+            transaction_id,
+            payload: Action::Transfer {
+                sender: *to,
+                recipient: *from,
+                amount: token_amount,
+            }.encode(),
         }),
     )
 }
 
 pub fn create_swap_transfer_instruction(
+    transaction_id: u64,
     token_address: &ActorId,
     from: &ActorId,
     to: &ActorId,
@@ -97,25 +123,32 @@ pub fn create_swap_transfer_instruction(
 ) -> Instruction {
     Instruction::new(
         *token_address,
-        FTAction::Transfer {
-            from: *from,
-            to: *to,
-            amount: token_amount,
+        FTokenAction::Message {
+            transaction_id,
+            payload: Action::Transfer {
+                sender: *from,
+                recipient: *to,
+                amount: token_amount,
+            }.encode(),
         },
         None,
     )
 }
 
 pub fn create_approval_instruction(
+    transaction_id: u64,
     token_address: &ActorId,
     to: &ActorId,
     token_amount: u128,
 ) -> Instruction {
     Instruction::new(
         *token_address,
-        FTAction::Approve {
-            to: *to,
-            amount: token_amount,
+        FTokenAction::Message {
+            transaction_id,
+            payload: Action::Approve {
+                approved_account: *to,
+                amount: token_amount,
+            }.encode(),
         },
         // No RevokeApproval for an FT implementation :)
         None,

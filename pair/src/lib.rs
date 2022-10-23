@@ -53,7 +53,6 @@ pub enum TransactionStatus {
     Failure,
 }
 
-
 #[derive(Debug, Copy, Clone)]
 pub struct TransferDescription {
     token_address: ActorId,
@@ -76,23 +75,29 @@ impl Pair {
             TransactionStatus::Success => reply_ok(),
             TransactionStatus::Failure => reply_err(),
             TransactionStatus::InProgress => match action {
+                // done
                 PairAction::Sync  => {
                     self.sync(transaction_hash).await;
                 }
+                // done
                 PairAction::Skim { to } => {
-                    self.skim(transaction_hash, to).await;
+                    self.skim(transaction_id, to).await;
                 }
+                // done
                 PairAction::AddLiquidity { amount0_desired, amount1_desired, amount0_min, amount1_min, to } => {
-                    self.add_liquidity(transaction_hash, *amount0_desired, *amount1_desired, *amount0_min, *amount1_min, to).await;
+                    self.add_liquidity(transaction_id, *amount0_desired, *amount1_desired, *amount0_min, *amount1_min, to).await;
                 }
+                // done
                 PairAction::SwapExactTokensFor { to, amount_in } => {
-                    self.swap_exact_tokens_for(transaction_hash, to, *amount_in).await;
+                    self.swap_exact_tokens_for(transaction_id, to, *amount_in).await;
                 }
+                // done
                 PairAction::SwapTokensForExact { to, amount_out } => {
-                    self.swap_tokens_for_exact(transaction_hash, to, *amount_out).await;
+                    self.swap_tokens_for_exact(transaction_id, to, *amount_out).await;
                 }
+                // done
                 PairAction::RemoveLiquidity { liquidity, amount0_min, amount1_min, to } => {
-                    self.remove_liquidity(transaction_hash, *liquidity, *amount0_min, *amount1_min, to).await;
+                    self.remove_liquidity(transaction_id, *liquidity, *amount0_min, *amount1_min, to).await;
                 }
             }
         }
@@ -100,6 +105,7 @@ impl Pair {
 
     async fn perform_two_transfers(
         &mut self,
+        transaction_id: u64,
         transaction_hash: H256,
         transfer1: TransferDescription,
         transfer2: TransferDescription,
@@ -108,12 +114,14 @@ impl Pair {
             .entry(transaction_hash)
             .or_insert_with(|| {
                 let first_transfer = create_forward_transfer_instruction(
+                    transaction_id,
                     &transfer1.token_address,
                     &transfer1.from,
                     &transfer1.to,
                     transfer1.token_amount
                 );
                 let second_transfer = create_swap_transfer_instruction(
+                    transaction_id,
                     &transfer2.token_address,
                     &transfer2.from,
                     &transfer2.to,
@@ -148,6 +156,7 @@ impl Pair {
                 }
             }
     }
+
     async fn sync(&mut self, transaction_hash: H256) {
         self.transaction_status
             .insert(transaction_hash, TransactionStatus::InProgress);
@@ -159,7 +168,8 @@ impl Pair {
         reply_ok();
     }
 
-    async fn skim(&mut self, transaction_hash: H256, to: &ActorId) {
+    async fn skim(&mut self, transaction_id: u64, to: &ActorId) {
+        let transaction_hash = get_hash(&msg::source(), transaction_id);
         self.transaction_status
             .insert(transaction_hash, TransactionStatus::InProgress);
 
@@ -167,6 +177,7 @@ impl Pair {
         self.balance0 -= self.reserve0;
         self.balance1 -= self.reserve1;
         self.perform_two_transfers(
+            transaction_id,
             transaction_hash,
             TransferDescription {
                 token_address: self.token0,
@@ -186,13 +197,15 @@ impl Pair {
 
     async fn add_liquidity(
         &mut self,
-        transaction_hash: H256,
+        transaction_id: u64,
         amount0_desired: u128,
         amount1_desired: u128,
         amount0_min: u128,
         amount1_min: u128,
         to: &ActorId,
     ) {
+
+        let transaction_hash = get_hash(&msg::source(), transaction_id);
         let amount0: u128;
         let amount1: u128;
         // Check the amounts provided with the respect to the reserves to find the best amount of tokens0/1 to be added.
@@ -230,6 +243,7 @@ impl Pair {
 
         // now we can transfer tokens
         self.perform_two_transfers(
+            transaction_id,
             transaction_hash,
             TransferDescription {
                 token_address: self.token0,
@@ -249,12 +263,14 @@ impl Pair {
 
     async fn remove_liquidity(
         &mut self,
-        transaction_hash: H256,
+        transaction_id: u64,
         liquidity: u128,
         amount0_min: u128,
         amount1_min: u128,
         to: &ActorId,
     ) {
+
+        let transaction_hash = get_hash(&msg::source(), transaction_id);
         FTCore::transfer(self, &msg::source(), &exec::program_id(), liquidity);
         // no need for self.burn though
         let fee_on = self.mint_fee(self.reserve0, self.reserve1).await;
@@ -292,6 +308,7 @@ impl Pair {
         // transfer here
 
         self.perform_two_transfers(
+            transaction_id,
             transaction_hash,
             TransferDescription {
                 token_address: self.token0,
@@ -308,12 +325,15 @@ impl Pair {
         )
         .await;
     }
+
     async fn swap_exact_tokens_for(
         &mut self,
-        transaction_hash: H256,
+        transaction_id: u64,
         to: &ActorId,
         amount_in: u128,
     ) {
+
+        let transaction_hash = get_hash(&msg::source(), transaction_id);
         let amount_out = math::get_amount_out(amount_in, self.reserve0, self.reserve1);
         if amount_out > self.reserve1 {
             panic!("PAIR: Insufficient liquidity.");
@@ -325,6 +345,7 @@ impl Pair {
         self.update(self.balance0, self.balance1, self.reserve0, self.reserve1);
 
         self.perform_two_transfers(
+            transaction_id,
             transaction_hash,
             TransferDescription {
                 token_address: self.token0,
@@ -344,10 +365,12 @@ impl Pair {
 
     async fn swap_tokens_for_exact(
         &mut self,
-        transaction_hash: H256,
+        transaction_id: u64,
         to: &ActorId,
         amount_out: u128,
     ) {
+
+        let transaction_hash = get_hash(&msg::source(), transaction_id);
         let amount_in = math::get_amount_in(amount_out, self.reserve0, self.reserve1);
         if amount_in > self.reserve0 {
             panic!("PAIR: Insufficient liquidity.");
@@ -357,6 +380,7 @@ impl Pair {
         self.update(self.balance0, self.balance1, self.reserve0, self.reserve1);
 
         self.perform_two_transfers(
+            transaction_id,
             transaction_hash,
             TransferDescription {
                 token_address: self.token0,
