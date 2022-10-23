@@ -26,7 +26,7 @@ pub enum MessageAction {
     Message {
         transaction_id: u64,
         payload: PairAction,
-    }
+    },
 }
 
 #[derive(Encode, TypeInfo)]

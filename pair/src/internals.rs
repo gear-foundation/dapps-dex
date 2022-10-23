@@ -134,6 +134,4 @@ impl Pair {
         self.reserve1 = balance1;
         self.last_block_ts = current_ts as u128;
     }
-
-
 }

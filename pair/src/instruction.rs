@@ -1,10 +1,6 @@
-use crate::H256;
-use gear_lib::non_fungible_token::token;
-use gstd::{msg, ActorId, prelude::*};
-use ft_io::*;
-use ft_main_io::*;
 use ft_logic_io::*;
-
+use ft_main_io::*;
+use gstd::{msg, prelude::*, ActorId};
 
 #[derive(Debug)]
 pub enum InstructionState {
@@ -26,7 +22,7 @@ impl Instruction {
     pub fn new(
         address: ActorId,
         transaction: FTokenAction,
-        compensation: Option<FTokenAction>
+        compensation: Option<FTokenAction>,
     ) -> Self {
         Instruction {
             state: InstructionState::ScheduledRun,
@@ -41,9 +37,10 @@ impl Instruction {
             InstructionState::ScheduledRun => {
                 // Right now it's FTokenEvent, but should be moved
                 // LACKING CLONE OR COPY HERE :)
-                let result = msg::send_for_reply_as::<_, FTokenEvent>(self.address, self.transaction, 0)
-                    .expect("Error in sending a message in instruction")
-                    .await;
+                let result =
+                    msg::send_for_reply_as::<_, FTokenEvent>(self.address, self.transaction, 0)
+                        .expect("Error in sending a message in instruction")
+                        .await;
                 match result {
                     Ok(FTokenEvent::Ok) => {
                         self.state = InstructionState::ScheduledAbort;
@@ -56,7 +53,7 @@ impl Instruction {
                 }
             }
             InstructionState::RunWithError => Err(()),
-            _ => Ok(())
+            _ => Ok(()),
         }
     }
 
@@ -68,7 +65,7 @@ impl Instruction {
                     self.compensation
                         .as_ref()
                         .expect("No compensation for that instruction"),
-                        0,
+                    0,
                 )
                 .expect("Error in sending a compensation message in instruction")
                 .await;
@@ -81,7 +78,7 @@ impl Instruction {
                 }
             }
             InstructionState::Finished => Ok(()),
-            _ => Err(())
+            _ => Err(()),
         }
     }
 }
@@ -101,7 +98,8 @@ pub fn create_forward_transfer_instruction(
                 sender: *from,
                 recipient: *to,
                 amount: token_amount,
-            }.encode(),
+            }
+            .encode(),
         },
         Some(FTokenAction::Message {
             transaction_id,
@@ -109,7 +107,8 @@ pub fn create_forward_transfer_instruction(
                 sender: *to,
                 recipient: *from,
                 amount: token_amount,
-            }.encode(),
+            }
+            .encode(),
         }),
     )
 }
@@ -129,7 +128,8 @@ pub fn create_swap_transfer_instruction(
                 sender: *from,
                 recipient: *to,
                 amount: token_amount,
-            }.encode(),
+            }
+            .encode(),
         },
         None,
     )
@@ -148,7 +148,8 @@ pub fn create_approval_instruction(
             payload: Action::Approve {
                 approved_account: *to,
                 amount: token_amount,
-            }.encode(),
+            }
+            .encode(),
         },
         // No RevokeApproval for an FT implementation :)
         None,
