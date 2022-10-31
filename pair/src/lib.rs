@@ -34,6 +34,9 @@ pub struct Pair {
     pub price1_cl: u128,
     // K which is equal to self.reserve0 * self.reserve1 which is used to amount calculations when performing a swap.
     pub k_last: u128,
+
+    transaction_id: u64,
+    transactions: BTreeMap<ActorId, u64>,
 }
 
 static mut PAIR: Option<Pair> = None;
@@ -42,9 +45,10 @@ impl Pair {
     // EXTERNAL FUNCTIONS
 
     /// Forces balances to match the reserves.
-    /// `to` - MUST be a non-zero address
-    /// Arguments:
-    /// * `to` - where to perform tokens' transfers
+    /// # Requirements:
+    /// * `to` - MUST be a non-zero address.
+    /// # Arguments:
+    /// * `to` - where to perform tokens transfers.
     pub async fn skim(&mut self, to: ActorId) {
         messages::transfer_tokens(
             &self.token0,
@@ -90,13 +94,14 @@ impl Pair {
     }
 
     /// Adds liquidity to the pool.
-    /// `to` - MUST be a non-zero address
-    /// Arguments:
-    /// * `amount0_desired` - is the desired amount of token0 the user wants to add
-    /// * `amount1_desired` - is the desired amount of token1 the user wants to add
-    /// * `amount0_min` - is the minimum amount of token0 the user wants to add
-    /// * `amount1_min` - is the minimum amount of token1 the user wants to add
-    /// * `to` - is the liquidity provider
+    /// # Requirements:
+    /// * `to` - MUST be a non-zero address.
+    /// # Arguments:
+    /// * `amount0_desired` - is the desired amount of `token0` the user wants to add.
+    /// * `amount1_desired` - is the desired amount of `token1` the user wants to add.
+    /// * `amount0_min` - is the minimum amount of `token0` the user wants to add.
+    /// * `amount1_min` - is the minimum amount of `token1` the user wants to add.
+    /// * `to` - is the liquidity provider.
     pub async fn add_liquidity(
         &mut self,
         amount0_desired: u128,
@@ -105,9 +110,19 @@ impl Pair {
         amount1_min: u128,
         to: ActorId,
     ) {
+        let source = msg::source();
+        let first_transfer_tx_id = *self.transactions.entry(source).or_insert_with(|| {
+            let id = self.transaction_id;
+
+            self.transaction_id = self.transaction_id.wrapping_add(2);
+
+            id
+        });
+        let second_transfer_tx_id = first_transfer_tx_id + 1;
+
         let amount0: u128;
         let amount1: u128;
-        // Check the amounts provided with the respect to the reserves to find the best amount of tokens0/1 to be added.
+        // Check the amounts provided with the respect to the reserves to find the best amount of tokens0/1 to be added
         if self.reserve0 == 0 && self.reserve1 == 0 {
             amount0 = amount0_desired;
             amount1 = amount1_desired;
@@ -129,14 +144,55 @@ impl Pair {
             }
         }
 
+        // Note: `amount0` and `amount1` can be changed between blocks,
+        // and because of that, if `second_transfer_tx_id` will exceed gas,
+        // then another transfer(with correct gas amount) will introduce invalid
+        // optimal / desired amounts(because amounts are changed in prev block)
+
         let pair_address = exec::program_id();
-        messages::transfer_tokens(&self.token0, &msg::source(), &pair_address, amount0).await;
-        messages::transfer_tokens(&self.token1, &msg::source(), &pair_address, amount1).await;
-        // Update the balances.
-        self.balance0 += amount0;
-        self.balance1 += amount1;
-        // call mint function
+        if messages::transfer_tokens_sharded(
+            first_transfer_tx_id,
+            &self.token0,
+            &source,
+            &pair_address,
+            amount0,
+        )
+        .await
+        .is_err()
+        {
+            self.transactions.remove(&source);
+            msg::reply(PairEvent::TransactionFailed(first_transfer_tx_id), 0)
+                .expect("Unable to reply!");
+            return;
+        }
+
+        if messages::transfer_tokens_sharded(
+            second_transfer_tx_id,
+            &self.token1,
+            &source,
+            &pair_address,
+            amount1,
+        )
+        .await
+        .is_err()
+        {
+            msg::reply(PairEvent::TransactionFailed(second_transfer_tx_id), 0)
+                .expect("Unable to reply!");
+            return;
+        }
+
+        // messages::transfer_tokens(&self.token0, &source, &pair_address, amount0).await;
+        // messages::transfer_tokens(&self.token1, &source, &pair_address, amount1).await;
+
+        // Update the balances
+        self.balance0 = self.balance0.checked_add(amount0).expect("Math overflow!");
+        self.balance1 = self.balance1.checked_add(amount1).expect("Math overflow!");
+
+        // Call mint function
         let liquidity = self.mint(to).await;
+
+        self.transactions.remove(&source);
+
         msg::reply(
             PairEvent::AddedLiquidity {
                 amount0,
@@ -146,17 +202,18 @@ impl Pair {
             },
             0,
         )
-        .expect("Error during a replying with PairEvent::AddedLiquidity");
+        .expect("Error during a replying with `PairEvent::AddedLiquidity`");
     }
 
     /// Removes liquidity from the pool.
-    /// Internally calls self.burn function while transferring `liquidity` amount of internal tokens
-    /// `to` - MUST be a non-zero address
-    /// Arguments:
-    /// * `liquidity` - is the desired liquidity the user wants to remove (e.g. burn)
-    /// * `amount0_min` - is the minimum amount of token0 the user wants to receive
-    /// * `amount1_min` - is the minimum amount of token1 the user wants to receive
-    /// * `to` - is the liquidity provider
+    /// Internally calls `self.burn` function while transferring `liquidity` amount of internal tokens.
+    /// # Requirements:
+    /// * `to` - MUST be a non-zero address.
+    /// # Arguments:
+    /// * `liquidity` - is the desired liquidity the user wants to remove (e.g. burn).
+    /// * `amount0_min` - is the minimum amount of `token0` the user wants to receive.
+    /// * `amount1_min` - is the minimum amount of `token1` the user wants to receive.
+    /// * `to` - is the liquidity provider.
     pub async fn remove_liquidity(
         &mut self,
         liquidity: u128,
@@ -178,13 +235,14 @@ impl Pair {
         // .expect("Error during a replying with PairEvent::RemovedLiquidity");
     }
 
-    /// Swaps exact token0 for some token1
-    /// Internally calculates the price from the reserves and call self._swap
-    /// `to` - MUST be a non-zero address
-    /// `amount_in` - MUST be non-zero
-    /// Arguments:
-    /// * `amount_in` - is the amount of token0 user want to swap
-    /// * `to` - is the receiver of the swap operation
+    /// Swaps exact `token0` for some `token1`.
+    /// Internally calculates the price from the reserves and call `self._swap`.
+    /// # Requirements:
+    /// * `to` - MUST be a non-zero address.
+    /// * `amount_in` - MUST be non-zero.
+    /// # Arguments:
+    /// * `amount_in` - is the amount of `token0` user want to swap.
+    /// * `to` - is the receiver of the swap operation.
     pub async fn swap_exact_tokens_for(&mut self, amount_in: u128, to: ActorId) {
         // token1 amount
         let amount_out = math::get_amount_out(amount_in, self.reserve0, self.reserve1);
@@ -201,13 +259,14 @@ impl Pair {
         .expect("Error during a replying with PairEvent::SwapExactTokensFor");
     }
 
-    /// Swaps exact token1 for some token0
-    /// Internally calculates the price from the reserves and call self._swap
-    /// `to` - MUST be a non-zero address
-    /// `amount_in` - MUST be non-zero
-    /// Arguments:
-    /// * `amount_out` - is the amount of token1 user want to swap
-    /// * `to` - is the receiver of the swap operation
+    /// Swaps exact `token1` for some `token0`.
+    /// Internally calculates the price from the reserves and call `self._swap`.
+    /// # Requirements:
+    /// * `to` - MUST be a non-zero address.
+    /// * `amount_in` - MUST be non-zero.
+    /// # Arguments:
+    /// * `amount_out` - is the amount of `token1` user want to swap.
+    /// * `to` - is the receiver of the swap operation.
     pub async fn swap_tokens_for_exact(&mut self, amount_out: u128, to: ActorId) {
         let amount_in = math::get_amount_in(amount_out, self.reserve0, self.reserve1);
 
