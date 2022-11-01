@@ -300,15 +300,17 @@ impl Pair {
         to: ActorId,
     ) {
         FTCore::transfer(self, &msg::source(), &exec::program_id(), liquidity);
-        // Burn and get the optimal amount of burned tokens.
-        let (amount0, amount1) = self.burn(to).await;
 
-        if amount0 < amount0_min {
-            panic!("PAIR: Insufficient amount of token 0")
+        // Burn and get the optimal amount of burned tokens.
+        if let Some((amount0, amount1)) = self.burn(to).await {
+            if amount0 < amount0_min {
+                panic!("PAIR: Insufficient amount of token 0")
+            }
+            if amount1 < amount1_min {
+                panic!("PAIR: Insufficient amount of token 1")
+            }
         }
-        if amount1 < amount1_min {
-            panic!("PAIR: Insufficient amount of token 1")
-        }
+
         // msg::reply(PairEvent::RemovedLiquidity { liquidity, to }, 0)
         // .expect("Error during a replying with PairEvent::RemovedLiquidity");
     }
