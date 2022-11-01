@@ -36,7 +36,7 @@ pub struct Pair {
     pub k_last: u128,
 
     transaction_id: u64,
-    transactions: BTreeMap<ActorId, u64>,
+    transactions: BTreeMap<ActorId, (u64, u128, u128)>,
 }
 
 static mut PAIR: Option<Pair> = None;
@@ -111,14 +111,6 @@ impl Pair {
         to: ActorId,
     ) {
         let source = msg::source();
-        let first_transfer_tx_id = *self.transactions.entry(source).or_insert_with(|| {
-            let id = self.transaction_id;
-
-            self.transaction_id = self.transaction_id.wrapping_add(2);
-
-            id
-        });
-        let second_transfer_tx_id = first_transfer_tx_id + 1;
 
         let amount0: u128;
         let amount1: u128;
@@ -148,6 +140,15 @@ impl Pair {
         // and because of that, if `second_transfer_tx_id` will exceed gas,
         // then another transfer(with correct gas amount) will introduce invalid
         // optimal / desired amounts(because amounts are changed in prev block)
+        let (first_transfer_tx_id, amount0, amount1) =
+            *self.transactions.entry(source).or_insert_with(|| {
+                let id = self.transaction_id;
+
+                self.transaction_id = self.transaction_id.wrapping_add(2);
+
+                (id, amount0, amount1)
+            });
+        let second_transfer_tx_id = first_transfer_tx_id + 1;
 
         let pair_address = exec::program_id();
         if messages::transfer_tokens_sharded(
@@ -180,9 +181,6 @@ impl Pair {
                 .expect("Unable to reply!");
             return;
         }
-
-        // messages::transfer_tokens(&self.token0, &source, &pair_address, amount0).await;
-        // messages::transfer_tokens(&self.token1, &source, &pair_address, amount1).await;
 
         // Update the balances
         self.balance0 = self.balance0.checked_add(amount0).expect("Math overflow!");
