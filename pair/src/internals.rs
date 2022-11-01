@@ -3,7 +3,7 @@ use crate::*;
 impl Pair {
     // INTERNAL METHODS
 
-    // A simple wrapper for balance calculations to facilitate mint & burn.
+    /// A simple wrapper for balance calculations to facilitate mint & burn.
     pub fn update_balance(&mut self, to: ActorId, amount: u128, increase: bool) {
         self.get_mut()
             .allowances
@@ -27,10 +27,11 @@ impl Pair {
         }
     }
 
-    // Mints the liquidity.
-    // `to` - MUST be a non-zero address
-    // Arguments:
-    // * `to` - is the operation performer
+    /// Mints the liquidity.
+    /// # Requirements:
+    /// * `to` - MUST be a non-zero address.
+    /// # Arguments:
+    /// * `to` - is the operation performer.
     pub async fn mint(&mut self, to: ActorId) -> u128 {
         let amount0 = self.balance0.saturating_sub(self.reserve0);
         let amount1 = self.balance1.saturating_sub(self.reserve1);
@@ -68,16 +69,16 @@ impl Pair {
         liquidity
     }
 
-    // Mint liquidity if fee is on.
-    // If fee is on, mint liquidity equivalent to 1/6th of the growth in sqrt(k). So the math if the following.
-    // Calculate the sqrt of current k using the reserves. Compare it.
-    // If the current one is greater, than calculate the liquidity using the following formula:
-    // liquidity = (total_supply * (root_k - last_root_k)) / (root_k * 5 + last_root_k).
-    // where root_k - is the sqrt of the current product of reserves, and last_root_k - is the sqrt of the previous product.
-    // Multiplication by 5 comes from the 1/6 of growrth is sqrt.
-    // Arguments:
-    // * `reserve0` - the available amount of token0
-    // * `reserve1` - the available amount of token1
+    /// Mint liquidity if fee is on.
+    /// If fee is on, mint liquidity equivalent to 1/6th of the growth in sqrt(k). So the math if the following.
+    /// Calculate the sqrt of current k using the reserves. Compare it.
+    /// If the current one is greater, than calculate the liquidity using the following formula:
+    /// liquidity = (total_supply * (root_k - last_root_k)) / (root_k * 5 + last_root_k).
+    /// where root_k - is the sqrt of the current product of reserves, and last_root_k - is the sqrt of the previous product.
+    /// Multiplication by 5 comes from the 1/6 of growrth is sqrt.
+    /// # Arguments:
+    /// * `reserve0` - the available amount of `token0`.
+    /// * `reserve1` - the available amount of `token1`.
     pub async fn mint_fee(&mut self, reserve0: u128, reserve1: u128) -> bool {
         // get fee_to from factory
         let fee_to: ActorId = messages::get_fee_to(&self.factory).await;
@@ -108,12 +109,12 @@ impl Pair {
         fee_on
     }
 
-    // Updates reserves and, on the first call per block, price accumulators
-    // Arguments:
-    // * `balance0` - token0 balance
-    // * `balance1` - token1 balance
-    // * `reserve0` - the available amount of token0
-    // * `reserve1` - the available amount of token1
+    /// Updates reserves and, on the first call per block, price accumulators.
+    /// # Arguments:
+    /// * `balance0` - `token0` balance.
+    /// * `balance1` - `token1` balance.
+    /// * `reserve0` - the available amount of `token0`.
+    /// * `reserve1` - the available amount of `token1`.
     pub fn update(&mut self, balance0: u128, balance1: u128, reserve0: u128, reserve1: u128) {
         let current_ts = (exec::block_timestamp() & 0xFFFFFFFF) as u32;
         let time_elapsed = current_ts as u128 - self.last_block_ts;
@@ -135,10 +136,11 @@ impl Pair {
         self.last_block_ts = current_ts as u128;
     }
 
-    // Burns the liquidity.
-    // `to` - MUST be a non-zero address
-    // Arguments:
-    // * `to` - is the operation performer
+    /// Burns the liquidity.
+    /// # Requirements:
+    /// * `to` - MUST be a non-zero address.
+    /// # Arguments:
+    /// * `to` - is the operation performer.
     pub async fn burn(&mut self, to: ActorId) -> (u128, u128) {
         let fee_on = self.mint_fee(self.reserve0, self.reserve1).await;
         // get liquidity
@@ -173,35 +175,169 @@ impl Pair {
         (amount0, amount1)
     }
 
-    // Swaps two tokens just by calling transfer_tokens from the token contracts.
-    // Also maintains the balances and updates the reservers to match the balances.
-    // `amount0` - MUST be more than self.reserve0
-    // `amount1` - MUST be more than self.reserve1
-    // `to` - MUST be a non-zero address
-    // Arguments:
-    // * `amount0` - amount of token0
-    // * `amount1` - amount of token1
-    // * `to` - is the operation performer
-    // * `forward` - is the direction. If true - user inputs token0 and gets token1, otherwise - token1 -> token0
-    pub async fn _swap(&mut self, amount0: u128, amount1: u128, to: ActorId, forward: bool) {
+    /// Swaps two tokens just by calling `transfer_tokens` from the token contracts.
+    /// Also maintains the balances and updates the reservers to match the balances.
+    /// # Requirements:
+    /// * `amount0` - MUST be more than `self.reserve0`.
+    /// * `amount1` - MUST be more than `self.reserve1`.
+    /// * `to` - MUST be a non-zero address.
+    /// # Arguments:
+    /// * `amount0` - amount of `token0`.
+    /// * `amount1` - amount of `token1`.
+    /// * `to` - is the operation performer.
+    /// * `forward` - is the direction. If true - user inputs `token0` and gets `token1`, otherwise - `token1` -> `token0`.
+    pub async fn _swap(
+        &mut self,
+        amount0: u128,
+        amount1: u128,
+        to: ActorId,
+        forward: bool,
+    ) -> bool {
         if amount0 > self.reserve0 && forward {
             panic!("PAIR: Insufficient liquidity.");
         }
         if amount1 > self.reserve1 && !forward {
             panic!("PAIR: Insufficient liquidity.");
         }
-        // carefully, not forward
+
+        let source = to;
+        let program_id = exec::program_id();
+
+        // Carefully, not forward
+        // Note: since swap operations can work independently,
+        // each arm has its own *transaction_id logic
         if !forward {
-            messages::transfer_tokens(&self.token0, &exec::program_id(), &to, amount0).await;
-            messages::transfer_tokens(&self.token1, &to, &exec::program_id(), amount1).await;
-            self.balance0 -= amount0;
-            self.balance1 += amount1;
+            let (first_transfer_tx_id, amount0, amount1) =
+                *self.transactions.entry(source).or_insert_with(|| {
+                    let id = self.transaction_id;
+
+                    self.transaction_id = self.transaction_id.wrapping_add(3);
+
+                    (id, amount0, amount1)
+                });
+            let second_transfer_tx_id = first_transfer_tx_id + 1;
+            let third_transfer_tx_id = second_transfer_tx_id + 1;
+
+            if messages::transfer_tokens_sharded(
+                first_transfer_tx_id,
+                &self.token1,
+                &source,
+                &program_id,
+                amount1,
+            )
+            .await
+            .is_err()
+            {
+                self.transactions.remove(&source);
+                msg::reply(PairEvent::TransactionFailed(first_transfer_tx_id), 0)
+                    .expect("Unable to reply!");
+                return false;
+            }
+
+            if messages::transfer_tokens_sharded(
+                second_transfer_tx_id,
+                &self.token0,
+                &program_id,
+                &source,
+                amount0,
+            )
+            .await
+            .is_err()
+            {
+                if messages::transfer_tokens_sharded(
+                    third_transfer_tx_id,
+                    &self.token1,
+                    &program_id,
+                    &source,
+                    amount1,
+                )
+                .await
+                .is_err()
+                {
+                    // In theory this arm should never been executed
+                    msg::reply(PairEvent::RerunTransaction(third_transfer_tx_id), 0)
+                        .expect("Unable to reply!");
+                    return false;
+                }
+
+                self.transactions.remove(&source);
+
+                msg::reply(PairEvent::TransactionFailed(second_transfer_tx_id), 0)
+                    .expect("Unable to reply!");
+
+                return false;
+            }
+
+            self.balance0 = self.balance0.checked_sub(amount0).expect("Math overflow!");
+            self.balance1 = self.balance1.checked_add(amount1).expect("Math overflow!");
         } else {
-            messages::transfer_tokens(&self.token0, &to, &exec::program_id(), amount0).await;
-            messages::transfer_tokens(&self.token1, &exec::program_id(), &to, amount1).await;
-            self.balance0 += amount0;
-            self.balance1 -= amount1;
+            let (first_transfer_tx_id, amount0, amount1) =
+                *self.transactions.entry(source).or_insert_with(|| {
+                    let id = self.transaction_id;
+
+                    self.transaction_id = self.transaction_id.wrapping_add(3);
+
+                    (id, amount0, amount1)
+                });
+            let second_transfer_tx_id = first_transfer_tx_id + 1;
+            let third_transfer_tx_id = second_transfer_tx_id + 1;
+
+            if messages::transfer_tokens_sharded(
+                first_transfer_tx_id,
+                &self.token0,
+                &source,
+                &program_id,
+                amount0,
+            )
+            .await
+            .is_err()
+            {
+                self.transactions.remove(&source);
+                msg::reply(PairEvent::TransactionFailed(first_transfer_tx_id), 0)
+                    .expect("Unable to reply!");
+                return false;
+            }
+
+            if messages::transfer_tokens_sharded(
+                second_transfer_tx_id,
+                &self.token1,
+                &program_id,
+                &source,
+                amount0,
+            )
+            .await
+            .is_err()
+            {
+                if messages::transfer_tokens_sharded(
+                    third_transfer_tx_id,
+                    &self.token0,
+                    &program_id,
+                    &source,
+                    amount0,
+                )
+                .await
+                .is_err()
+                {
+                    // In theory this arm should never been executed
+                    msg::reply(PairEvent::RerunTransaction(third_transfer_tx_id), 0)
+                        .expect("Unable to reply!");
+                    return false;
+                }
+
+                self.transactions.remove(&source);
+
+                msg::reply(PairEvent::TransactionFailed(second_transfer_tx_id), 0)
+                    .expect("Unable to reply!");
+
+                return false;
+            }
+
+            self.balance0 = self.balance0.checked_add(amount0).expect("Math overflow!");
+            self.balance1 = self.balance1.checked_sub(amount1).expect("Math overflow!");
         }
+
         self.update(self.balance0, self.balance1, self.reserve0, self.reserve1);
+
+        true
     }
 }

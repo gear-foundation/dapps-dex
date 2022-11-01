@@ -325,7 +325,10 @@ impl Pair {
         // token1 amount
         let amount_out = math::get_amount_out(amount_in, self.reserve0, self.reserve1);
 
-        self._swap(amount_in, amount_out, to, true).await;
+        if !self._swap(amount_in, amount_out, to, true).await {
+            return;
+        }
+
         msg::reply(
             PairEvent::SwapExactTokensFor {
                 to,
@@ -334,7 +337,7 @@ impl Pair {
             },
             0,
         )
-        .expect("Error during a replying with PairEvent::SwapExactTokensFor");
+        .expect("Error during a replying with `PairEvent::SwapExactTokensFor`");
     }
 
     /// Swaps exact `token1` for some `token0`.
@@ -348,7 +351,10 @@ impl Pair {
     pub async fn swap_tokens_for_exact(&mut self, amount_out: u128, to: ActorId) {
         let amount_in = math::get_amount_in(amount_out, self.reserve0, self.reserve1);
 
-        self._swap(amount_in, amount_out, to, false).await;
+        if !self._swap(amount_in, amount_out, to, false).await {
+            return;
+        }
+
         msg::reply(
             PairEvent::SwapTokensForExact {
                 to,
@@ -357,7 +363,7 @@ impl Pair {
             },
             0,
         )
-        .expect("Error during a replying with PairEvent::SwapTokensForExact");
+        .expect("Error during a replying with `PairEvent::SwapTokensForExact`");
     }
 }
 
