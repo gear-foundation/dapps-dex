@@ -15,27 +15,28 @@ const MINIMUM_LIQUIDITY: u128 = 1000;
 pub struct Pair {
     #[FTStateField]
     pub token: FTState,
-    // Factoty address which deployed this pair
+    /// Factoty address which deployed this pair.
     pub factory: ActorId,
-    // First FT contract address.
+    /// First FT contract address.
     pub token0: ActorId,
-    // Second FT contract address.
+    /// Second FT contract address.
     pub token1: ActorId,
-    // Last timestamp when the reserves and balances were updated
+    /// Last timestamp when the reserves and balances were updated.
     last_block_ts: u128,
-    // Balances of token0 and token1, to get rid of actually querying the balance from the contract.
+    /// Balances of token0 and token1, to get rid of actually querying the balance from the contract.
     pub balance0: u128,
     pub balance1: u128,
-    // Token0 and token1 reserves.
+    /// Token0 and token1 reserves.
     reserve0: u128,
     reserve1: u128,
-    // Token prices
+    /// Token prices.
     pub price0_cl: u128,
     pub price1_cl: u128,
-    // K which is equal to self.reserve0 * self.reserve1 which is used to amount calculations when performing a swap.
+    /// K which is equal to self.reserve0 * self.reserve1 which is used to amount calculations when performing a swap.
     pub k_last: u128,
-
+    /// Global transaction id nonce.
     transaction_id: u64,
+    /// Hold transaction id, cached `amount0`, `amount1`.
     transactions: BTreeMap<ActorId, (u64, u128, u128)>,
 }
 
@@ -50,23 +51,83 @@ impl Pair {
     /// # Arguments:
     /// * `to` - where to perform tokens transfers.
     pub async fn skim(&mut self, to: ActorId) {
-        messages::transfer_tokens(
+        let source = exec::program_id();
+
+        let amount0 = self
+            .balance0
+            .checked_sub(self.reserve0)
+            .expect("Math overflow!");
+        let amount1 = self
+            .balance1
+            .checked_sub(self.reserve1)
+            .expect("Math overflow!");
+
+        let (first_transfer_tx_id, amount0, amount1) =
+            *self.transactions.entry(source).or_insert_with(|| {
+                let id = self.transaction_id;
+
+                self.transaction_id = self.transaction_id.wrapping_add(3);
+
+                (id, amount0, amount1)
+            });
+        let second_transfer_tx_id = first_transfer_tx_id + 1;
+        let third_transfer_tx_id = second_transfer_tx_id + 1;
+
+        if messages::transfer_tokens_sharded(
+            first_transfer_tx_id,
             &self.token0,
-            &exec::program_id(),
+            &source,
             &to,
-            self.balance0.saturating_sub(self.reserve0),
+            amount0,
         )
-        .await;
-        messages::transfer_tokens(
+        .await
+        .is_err()
+        {
+            self.transactions.remove(&source);
+            msg::reply(PairEvent::TransactionFailed(first_transfer_tx_id), 0)
+                .expect("Unable to reply!");
+            return;
+        }
+
+        if messages::transfer_tokens_sharded(
+            second_transfer_tx_id,
             &self.token1,
-            &exec::program_id(),
+            &source,
             &to,
-            self.balance1.saturating_sub(self.reserve1),
+            amount1,
         )
-        .await;
-        // Update the balances.
-        self.balance0 -= self.reserve0;
-        self.balance1 -= self.reserve1;
+        .await
+        .is_err()
+        {
+            if messages::transfer_tokens_sharded(
+                third_transfer_tx_id,
+                &self.token0,
+                &to,
+                &source,
+                amount0,
+            )
+            .await
+            .is_err()
+            {
+                // In theory this arm should never been executed
+                msg::reply(PairEvent::RerunTransaction(third_transfer_tx_id), 0)
+                    .expect("Unable to reply!");
+                return;
+            }
+
+            self.transactions.remove(&source);
+
+            msg::reply(PairEvent::TransactionFailed(second_transfer_tx_id), 0)
+                .expect("Unable to reply!");
+            return;
+        }
+
+        // Update the balances
+        self.balance0 = amount0;
+        self.balance1 = amount1;
+
+        self.transactions.remove(&source);
+
         msg::reply(
             PairEvent::Skim {
                 to,
@@ -75,7 +136,7 @@ impl Pair {
             },
             0,
         )
-        .expect("Error during a replying with PairEvent::Skim");
+        .expect("Error during a replying with `PairEvent::Skim`");
     }
 
     /// Forces reserves to match balances.
@@ -144,11 +205,12 @@ impl Pair {
             *self.transactions.entry(source).or_insert_with(|| {
                 let id = self.transaction_id;
 
-                self.transaction_id = self.transaction_id.wrapping_add(2);
+                self.transaction_id = self.transaction_id.wrapping_add(3);
 
                 (id, amount0, amount1)
             });
         let second_transfer_tx_id = first_transfer_tx_id + 1;
+        let third_transfer_tx_id = second_transfer_tx_id + 1;
 
         let pair_address = exec::program_id();
         if messages::transfer_tokens_sharded(
@@ -177,6 +239,24 @@ impl Pair {
         .await
         .is_err()
         {
+            if messages::transfer_tokens_sharded(
+                third_transfer_tx_id,
+                &self.token0,
+                &pair_address,
+                &source,
+                amount0,
+            )
+            .await
+            .is_err()
+            {
+                // In theory this arm should never been executed
+                msg::reply(PairEvent::RerunTransaction(third_transfer_tx_id), 0)
+                    .expect("Unable to reply!");
+                return;
+            }
+
+            self.transactions.remove(&source);
+
             msg::reply(PairEvent::TransactionFailed(second_transfer_tx_id), 0)
                 .expect("Unable to reply!");
             return;

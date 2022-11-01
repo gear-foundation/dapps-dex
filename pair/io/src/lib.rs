@@ -160,6 +160,7 @@ pub enum PairEvent {
         amount_out: u128,
     },
     TransactionFailed(u64),
+    RerunTransaction(u64),
 }
 
 #[derive(Debug, Encode, Decode, TypeInfo)]
