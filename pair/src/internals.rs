@@ -338,7 +338,7 @@ impl Pair {
                 &self.token1,
                 &program_id,
                 &source,
-                amount0,
+                amount1,
             )
             .await
             .is_err()

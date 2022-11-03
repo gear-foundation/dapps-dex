@@ -1,10 +1,11 @@
+mod utils;
+
 use dex_pair_io::*;
-use ft_io::*;
 use gear_lib::fungible_token::io::*;
 use gstd::{prelude::*, ActorId};
 use gtest::Program;
 use gtest::System;
-mod utils;
+use utils::token::*;
 
 pub const USER: u64 = 10;
 pub const FT_USER: u64 = 11;
@@ -24,69 +25,20 @@ fn pre_test(sys: &System, token0_id: u64, token1_id: u64) -> Program {
     let _factory = utils::init_factory(sys, USER, FEE_SETTER);
 
     // MINT TOKEN0
-    let token0 = utils::init_ft(
-        sys,
-        USER,
-        String::from("TOKEN0"),
-        String::from("TK0"),
-        token0_id,
-    );
-    let res = utils::mint_ft(&token0, USER, TOKEN_0_AMOUNT);
-    assert!(res.contains(&(
-        USER,
-        FTEvent::Transfer {
-            from: ActorId::zero(),
-            to: ActorId::from(USER),
-            amount: TOKEN_0_AMOUNT,
-        }
-        .encode()
-    )));
+    let token0 = Program::ftoken(USER, token0_id, sys);
+    token0.mint(0, USER, USER, TOKEN_0_AMOUNT, false);
 
-    let res = utils::approve_ft(&token0, USER, ActorId::from(USER), TOKEN_0_AMOUNT);
-    assert!(res.contains(&(
-        USER,
-        FTEvent::Approve {
-            from: ActorId::from(USER),
-            to: ActorId::from(USER),
-            amount: TOKEN_0_AMOUNT,
-        }
-        .encode()
-    )));
-
-    utils::check_ft_balance(&token0, USER, ActorId::from(USER), TOKEN_0_AMOUNT);
+    token0.approve(1, USER, PAIR_ID, TOKEN_0_AMOUNT, false);
+    token0.approve(2, USER, USER, TOKEN_0_AMOUNT, false);
+    token0.check_balance(USER, TOKEN_0_AMOUNT);
 
     // MINT TOKEN1
-    let token1 = utils::init_ft(
-        sys,
-        USER,
-        String::from("TOKEN1"),
-        String::from("TK1"),
-        token1_id,
-    );
+    let token1 = Program::ftoken(USER, token1_id, sys);
+    token1.mint(0, USER, USER, TOKEN_1_AMOUNT, false);
 
-    let res = utils::mint_ft(&token1, USER, TOKEN_1_AMOUNT);
-    assert!(res.contains(&(
-        USER,
-        FTEvent::Transfer {
-            from: ActorId::zero(),
-            to: ActorId::from(USER),
-            amount: TOKEN_1_AMOUNT,
-        }
-        .encode()
-    )));
-
-    let res = utils::approve_ft(&token1, USER, ActorId::from(USER), TOKEN_1_AMOUNT);
-    assert!(res.contains(&(
-        USER,
-        FTEvent::Approve {
-            from: ActorId::from(USER),
-            to: ActorId::from(USER),
-            amount: TOKEN_1_AMOUNT,
-        }
-        .encode()
-    )));
-
-    utils::check_ft_balance(&token1, USER, ActorId::from(USER), TOKEN_1_AMOUNT);
+    token1.approve(1, USER, PAIR_ID, TOKEN_1_AMOUNT, false);
+    token1.approve(2, USER, USER, TOKEN_1_AMOUNT, false);
+    token1.check_balance(USER, TOKEN_1_AMOUNT);
 
     utils::init_pair(sys, USER, 1.into(), token0_id.into(), token1_id.into())
 }
@@ -113,31 +65,23 @@ fn pre_test_add_liquidity(sys: &System) -> Program {
         .encode()
     )));
 
-    // check that we actually minted liquidity tokens to the pair contract
+    // Check that we actually minted liquidity tokens to the pair contract
     // by checking pair_balance and tokens' balances for a user
     utils::check_pair_balance(&pair, ActorId::from(USER), LIQUIDITY);
+
     let token0 = sys.get_program(TOKEN_0_ID);
-    utils::check_ft_balance(
-        &token0,
-        USER,
-        ActorId::from(USER),
-        TOKEN_0_AMOUNT - TOKEN_0_LIQ,
-    );
-    utils::check_ft_balance(&token0, USER, ActorId::from(PAIR_ID), TOKEN_0_LIQ);
+    token0.check_balance(USER, TOKEN_0_AMOUNT - TOKEN_0_LIQ);
+    token0.check_balance(PAIR_ID, TOKEN_0_LIQ);
 
     let token1 = sys.get_program(TOKEN_1_ID);
-    utils::check_ft_balance(
-        &token1,
-        USER,
-        ActorId::from(USER),
-        TOKEN_1_AMOUNT - TOKEN_1_LIQ,
-    );
-    utils::check_ft_balance(&token1, USER, ActorId::from(PAIR_ID), TOKEN_1_LIQ);
+    token1.check_balance(USER, TOKEN_1_AMOUNT - TOKEN_1_LIQ);
+    token1.check_balance(PAIR_ID, TOKEN_1_LIQ);
 
     // check reserves
     utils::check_reserves(&pair, TOKEN_0_LIQ, TOKEN_1_LIQ);
     pair
 }
+
 // add_liquidity
 #[test]
 fn add_liquidity() {
@@ -151,7 +95,9 @@ fn add_liquidity() {
 fn add_liquidity_failures() {
     let sys = System::new();
     sys.init_logger();
+
     let pair = pre_test(&sys, TOKEN_0_ID, TOKEN_1_ID);
+
     // MUST fail, not enough token0 for a USER
     let res = utils::add_liquidity(
         &pair,
@@ -162,7 +108,8 @@ fn add_liquidity_failures() {
         TOKEN_1_LIQ,
         ActorId::from(USER),
     );
-    assert!(res.main_failed());
+    assert!(res.contains(&(USER, PairEvent::TransactionFailed(0).encode())));
+
     // MUST fail, not enough token1 for a USER
     let res = utils::add_liquidity(
         &pair,
@@ -173,7 +120,7 @@ fn add_liquidity_failures() {
         TOKEN_1_AMOUNT + 1,
         ActorId::from(USER),
     );
-    assert!(res.main_failed());
+    assert!(res.contains(&(USER, PairEvent::TransactionFailed(3).encode())));
 
     // MUST fail because of zero liquidity
     utils::add_liquidity(
@@ -214,20 +161,22 @@ fn remove_liquidity() {
 
     // check user balances
     let token0 = sys.get_program(TOKEN_0_ID);
-    utils::check_ft_balance(
+    token0.check_balance(USER, TOKEN_0_AMOUNT - TOKEN_0_LIQ + 250);
+    /* utils::check_ft_balance(
         &token0,
         USER,
         ActorId::from(USER),
         TOKEN_0_AMOUNT - TOKEN_0_LIQ + 250,
-    );
+    ); */
 
     let token1 = sys.get_program(TOKEN_1_ID);
-    utils::check_ft_balance(
+    token1.check_balance(USER, TOKEN_1_AMOUNT - TOKEN_1_LIQ + 250);
+    /* utils::check_ft_balance(
         &token1,
         USER,
         ActorId::from(USER),
         TOKEN_1_AMOUNT - TOKEN_1_LIQ + 250,
-    );
+    ); */
 }
 
 // remove_liquidity_failures
@@ -288,6 +237,7 @@ fn skim() {
 fn swap_exact_for() {
     let sys = System::new();
     sys.init_logger();
+
     let pair = pre_test_add_liquidity(&sys);
 
     let res = utils::swap_exact_for(&pair, USER, ActorId::from(USER), 110);
@@ -301,26 +251,16 @@ fn swap_exact_for() {
         .encode()
     )));
 
-    // check all the balances, considering that's a forward trade
+    // Check all the balances, considering that's a forward trade
     let token0 = sys.get_program(TOKEN_0_ID);
-    // user should have -110 token0, program should have +110 token0
-    utils::check_ft_balance(
-        &token0,
-        USER,
-        ActorId::from(USER),
-        TOKEN_0_AMOUNT - TOKEN_0_LIQ - 110,
-    );
-    utils::check_ft_balance(&token0, USER, ActorId::from(PAIR_ID), TOKEN_0_LIQ + 110);
+    // User should have -110 token0, program should have +110 token0
+    token0.check_balance(USER, TOKEN_0_AMOUNT - TOKEN_0_LIQ - 110);
+    token0.check_balance(PAIR_ID, TOKEN_0_LIQ + 110);
 
-    // user should have +97 tokens, program should have -97 tokens
+    // User should have +97 tokens, program should have -97 tokens
     let token1 = sys.get_program(TOKEN_1_ID);
-    utils::check_ft_balance(
-        &token1,
-        USER,
-        ActorId::from(USER),
-        TOKEN_1_AMOUNT - TOKEN_1_LIQ + 97,
-    );
-    utils::check_ft_balance(&token1, USER, ActorId::from(PAIR_ID), TOKEN_1_LIQ - 97);
+    token1.check_balance(USER, TOKEN_1_AMOUNT - TOKEN_1_LIQ + 97);
+    token1.check_balance(PAIR_ID, TOKEN_1_LIQ - 97);
 
     // check reserves after all
     utils::check_reserves(&pair, TOKEN_0_LIQ + 110, TOKEN_1_LIQ - 97);
@@ -353,6 +293,7 @@ fn swap_exact_for_failures() {
 fn swap_for_exact() {
     let sys = System::new();
     sys.init_logger();
+
     let pair = pre_test_add_liquidity(&sys);
 
     // should be 110, since the k is exactly the same an in trading forward
@@ -370,23 +311,13 @@ fn swap_for_exact() {
     // check all the balances, considering that's a forward trade
     let token0 = sys.get_program(TOKEN_0_ID);
     // user should have +110 token0, program should have -110 token0
-    utils::check_ft_balance(
-        &token0,
-        USER,
-        ActorId::from(USER),
-        TOKEN_0_AMOUNT - TOKEN_0_LIQ + 110,
-    );
-    utils::check_ft_balance(&token0, USER, ActorId::from(PAIR_ID), TOKEN_0_LIQ - 110);
+    token0.check_balance(USER, TOKEN_0_AMOUNT - TOKEN_0_LIQ + 110);
+    token0.check_balance(PAIR_ID, TOKEN_0_LIQ - 110);
 
     // user should have -97 tokens, program should have +97 tokens
     let token1 = sys.get_program(TOKEN_1_ID);
-    utils::check_ft_balance(
-        &token1,
-        USER,
-        ActorId::from(USER),
-        TOKEN_1_AMOUNT - TOKEN_1_LIQ - 97,
-    );
-    utils::check_ft_balance(&token1, USER, ActorId::from(PAIR_ID), TOKEN_1_LIQ + 97);
+    token1.check_balance(USER, TOKEN_1_AMOUNT - TOKEN_1_LIQ - 97);
+    token1.check_balance(PAIR_ID, TOKEN_1_LIQ + 97);
 
     // check reserves after all
     utils::check_reserves(&pair, TOKEN_0_LIQ - 110, TOKEN_1_LIQ + 97);
