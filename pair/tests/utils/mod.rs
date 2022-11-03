@@ -1,7 +1,8 @@
+pub mod token;
+
 use dex_factory_io::*;
 use dex_pair_io::FungibleId;
 use dex_pair_io::*;
-use ft_io::*;
 use gstd::{prelude::*, ActorId};
 use gtest::{Program, RunResult, System};
 
@@ -23,24 +24,6 @@ pub fn init_factory(sys: &System, user: u64, fee_setter: u64) -> Program {
         .is_empty());
 
     factory
-}
-
-pub fn init_ft(sys: &System, user: u64, name: String, symbol: String, id: u64) -> Program {
-    sys.init_logger();
-    let ft_program = Program::from_file_with_id(sys, id, "../target/fungible_token-0.1.1.wasm");
-    assert!(ft_program
-        .send(
-            user,
-            InitConfig {
-                name,
-                symbol,
-                decimals: 18
-            },
-        )
-        .log()
-        .is_empty());
-
-    ft_program
 }
 
 pub fn init_pair(
@@ -65,14 +48,6 @@ pub fn init_pair(
         .is_empty());
 
     pair_program
-}
-
-pub fn mint_ft(token: &Program, user: u64, amount: u128) -> RunResult {
-    token.send(user, FTAction::Mint(amount))
-}
-
-pub fn approve_ft(token: &Program, user: u64, to: ActorId, amount: u128) -> RunResult {
-    token.send(user, FTAction::Approve { to, amount })
 }
 
 pub fn sync(pair: &Program, user: u64) -> RunResult {
@@ -147,12 +122,6 @@ pub fn check_reserves(pair: &Program, reserve0: u128, reserve1: u128) {
             )
         }
     }
-}
-
-pub fn check_ft_balance(token: &Program, user: u64, address: ActorId, balance: u128) {
-    let res = token.send(user, FTAction::BalanceOf(address));
-    println!("{:?}", res.decoded_log::<FTEvent>());
-    assert!(res.contains(&(user, FTEvent::Balance(balance).encode())));
 }
 
 pub fn check_pair_balance(pair: &Program, address: ActorId, balance: u128) {

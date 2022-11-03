@@ -26,11 +26,12 @@ pub enum PairAction {
     /// Adds liquidity to the pair.
     ///
     /// Adds a specified amount of both tokens to the pair contract.
+    ///
     /// # Requirements:
     /// * all the values MUST non-zero numbers.
     /// * `to` MUST be a non-zero adddress.
     ///
-    /// On success returns `PairEvent::AddedLiquidity`.
+    /// On success returns [`PairEvent::AddedLiquidity`].
     AddLiquidity {
         /// The amount of token 0 which is desired by a user.
         amount0_desired: u128,
@@ -47,11 +48,12 @@ pub enum PairAction {
     /// Removes liquidity from the pair.
     ///
     /// Removes a specified amount of liquidity from the pair contact.
+    ///
     /// # Requirements:
     /// * all the values MUST non-zero numbers.
     /// * `to` MUST be a non-zero adddress.
     ///
-    /// On success returns `PairEvent::RemovedLiquidity`.
+    /// On success returns [`PairEvent::RemoveLiquidity`].
     RemoveLiquidity {
         /// Liquidity amount to be removed.
         liquidity: u128,
@@ -65,13 +67,14 @@ pub enum PairAction {
 
     /// Forces the reserves to match the balances.
     ///
-    /// On success returns `PairEvent::Sync`.
+    /// On success returns [`PairEvent::Sync`].
     Sync,
 
     /// Forces the reserves to match the balances.
     ///
     /// Forces the reserves to match the balances while sending all the extra tokens to a specified user.
-    /// On success returns `PairEvent::Skim`
+    ///
+    /// On success returns [`PairEvent::Skim`].
     Skim {
         /// Who will get extra tokens.
         to: ActorId,
@@ -80,11 +83,12 @@ pub enum PairAction {
     /// Swaps token 0 for token 1.
     ///
     /// Swaps the provided amount of token 0 for token 1.
-    /// Requirements:
+    ///
+    /// # Requirements:
     /// * `to` - MUST be a non-zero address.
     /// * `amount_in` - MUST be a non-zero number and less than the liquidity of token 0.
     ///
-    /// On success returns `PairEvent::SwapExactTokensFor`.
+    /// On success returns [`PairEvent::SwapExactTokensFor`].
     SwapExactTokensFor {
         /// Who is performing a swap.
         to: ActorId,
@@ -95,11 +99,12 @@ pub enum PairAction {
     /// Swaps token 1 for token 0.
     ///
     /// Swaps the provided amount of token 1 for token 0.
-    /// Requirements:
+    ///
+    /// # Requirements:
     /// * `to` - MUST be a non-zero address.
     /// * `amount_out` - MUST be a non-zero number and less than the liquidity of token 1.
     ///
-    /// On sucess returns `PairEvent::SwapTokensForExact`.
+    /// On sucess returns [`PairEvent::SwapTokensForExact`].
     SwapTokensForExact {
         /// Who is performing a swap.
         to: ActorId,
@@ -154,6 +159,8 @@ pub enum PairEvent {
         /// The amount of token1 a user is providing.
         amount_out: u128,
     },
+    TransactionFailed(u64),
+    RerunTransaction(u64),
 }
 
 #[derive(Debug, Encode, Decode, TypeInfo)]
