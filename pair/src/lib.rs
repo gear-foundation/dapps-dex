@@ -66,12 +66,11 @@ impl Pair {
             *self.transactions.entry(source).or_insert_with(|| {
                 let id = self.transaction_id;
 
-                self.transaction_id = self.transaction_id.wrapping_add(3);
+                self.transaction_id = self.transaction_id.wrapping_add(2);
 
                 (id, amount0, amount1)
             });
         let second_transfer_tx_id = first_transfer_tx_id + 1;
-        let third_transfer_tx_id = second_transfer_tx_id + 1;
 
         if messages::transfer_tokens_sharded(
             first_transfer_tx_id,
@@ -100,7 +99,7 @@ impl Pair {
         .is_err()
         {
             if messages::transfer_tokens_sharded(
-                third_transfer_tx_id,
+                second_transfer_tx_id,
                 &self.token0,
                 &to,
                 &source,
@@ -110,7 +109,7 @@ impl Pair {
             .is_err()
             {
                 // In theory this arm should never been executed
-                msg::reply(PairEvent::RerunTransaction(third_transfer_tx_id), 0)
+                msg::reply(PairEvent::RerunTransaction(second_transfer_tx_id), 0)
                     .expect("Unable to reply!");
                 return;
             }
@@ -205,12 +204,11 @@ impl Pair {
             *self.transactions.entry(source).or_insert_with(|| {
                 let id = self.transaction_id;
 
-                self.transaction_id = self.transaction_id.wrapping_add(3);
+                self.transaction_id = self.transaction_id.wrapping_add(2);
 
                 (id, amount0, amount1)
             });
         let second_transfer_tx_id = first_transfer_tx_id + 1;
-        let third_transfer_tx_id = second_transfer_tx_id + 1;
 
         let pair_address = exec::program_id();
         if messages::transfer_tokens_sharded(
@@ -240,7 +238,7 @@ impl Pair {
         .is_err()
         {
             if messages::transfer_tokens_sharded(
-                third_transfer_tx_id,
+                second_transfer_tx_id,
                 &self.token0,
                 &pair_address,
                 &source,
@@ -250,7 +248,7 @@ impl Pair {
             .is_err()
             {
                 // In theory this arm should never been executed
-                msg::reply(PairEvent::RerunTransaction(third_transfer_tx_id), 0)
+                msg::reply(PairEvent::RerunTransaction(second_transfer_tx_id), 0)
                     .expect("Unable to reply!");
                 return;
             }
