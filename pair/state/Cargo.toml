@@ -1,0 +1,14 @@
+[package]
+name = "dex-pair-state"
+version = "0.1.1"
+edition = "2021"
+
+[dependencies]
+gstd = { git = "https://github.com/gear-tech/gear.git", branch = "stable" }
+# TODO: pin to the "stable" branch before the merge.
+gmeta = { git = "https://github.com/gear-tech/gear.git", features = ["codegen"] }
+dex-pair-io = { path = "../io" }
+
+[build-dependencies]
+# TODO: pin to the "stable" branch before the merge.
+gear-wasm-builder = { git = "https://github.com/gear-tech/gear.git", features = ["metawasm"] }

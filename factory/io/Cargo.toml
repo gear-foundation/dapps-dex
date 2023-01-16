@@ -2,8 +2,11 @@
 name = "dex-factory-io"
 version = "0.1.1"
 edition = "2021"
-license = "MIT"
-authors = ["Gear Technologies"]
 
 [dependencies]
+# TODO: pin to the "stable" branch before the merge.
+gmeta = { git = "https://github.com/gear-tech/gear.git" }
 gstd = { git = "https://github.com/gear-tech/gear.git", branch = "stable" }
+scale-info = { version = "2", default-features = false }
+parity-scale-codec = { version = "3", default-features = false }
+dex-pair-io = { path = "../../pair/io" }
