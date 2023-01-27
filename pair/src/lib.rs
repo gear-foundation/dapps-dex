@@ -312,8 +312,9 @@ extern "C" fn state() {
 
 #[no_mangle]
 extern "C" fn metahash() {
-    reply(include!("../.metahash"))
-        .expect("Failed to encode or reply with `[u8; 32]` from `metahash()`");
+    let metahash: [u8; 32] = include!("../.metahash");
+
+    reply(metahash).expect("Failed to encode or reply with `[u8; 32]` from `metahash()`");
 }
 
 fn reply(payload: impl Encode) -> Result<MessageId> {

@@ -17,7 +17,7 @@ gstd = { git = "https://github.com/gear-tech/gear.git", branch = "stable", featu
 gtest = { git = "https://github.com/gear-tech/gear.git" }
 
 [build-dependencies]
-gear-wasm-builder = { git = "https://github.com/gear-tech/gear.git" }
+gear-wasm-builder = { git = "https://github.com/gear-tech/gear.git", branch = "stable" }
 dex-factory-io = { path = "io" }
 
 [features]

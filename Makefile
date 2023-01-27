@@ -34,4 +34,4 @@ deps:
 
 test: deps
 	@echo ⚙️ Running tests...
-	@cargo +nightly t
+	@cargo +nightly t -Fbinary-vendor
