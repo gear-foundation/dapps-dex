@@ -4,9 +4,16 @@ version = "0.1.1"
 edition = "2021"
 
 [dependencies]
-gstd = { git = "https://github.com/gear-tech/gear.git", branch = "stable" }
-gmeta = { git = "https://github.com/gear-tech/gear.git", branch = "stable", features = ["codegen"] }
+gstd = { git = "https://github.com/gear-tech/gear.git", branch = "testnet" }
+gmeta = { git = "https://github.com/gear-tech/gear.git", branch = "testnet", features = ["codegen"] }
 dex-pair-io = { path = "../io" }
+dex-pair = { path = "..", default-features = false }
+primitive-types = { version = "0.12", default-features = false }
+gear-lib = { git = "https://github.com/gear-dapps/gear-lib.git", rev = "9feeb7c" }
 
 [build-dependencies]
-gear-wasm-builder = { git = "https://github.com/gear-tech/gear.git", branch = "stable", features = ["metawasm"] }
+gear-wasm-builder = { git = "https://github.com/gear-tech/gear.git", branch = "testnet", features = ["metawasm"] }
+
+[features]
+default = ["binary-vendor"]
+binary-vendor = []
