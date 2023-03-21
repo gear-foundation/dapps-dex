@@ -24,14 +24,27 @@ lint:
 pre-commit: fmt lint test
 
 deps:
+	@mkdir -p target
 	@echo ⚙️ Downloading dependencies...
-	@path=target/fungible_token.wasm;\
+	@path=target/ft-main.wasm;\
 	if [ ! -f $$path ]; then\
 	    curl -L\
-	        https://github.com/gear-dapps/fungible-token/releases/download/0.1.3/fungible_token-0.1.3.wasm\
+	        https://github.com/gear-dapps/sharded-fungible-token/releases/download/0.1.5/ft_main-0.1.5.opt.wasm\
+	        -o $$path;\
+	fi
+	@path=target/ft-logic.wasm;\
+	if [ ! -f $$path ]; then\
+	    curl -L\
+	        https://github.com/gear-dapps/sharded-fungible-token/releases/download/0.1.5/ft_logic-0.1.5.opt.wasm\
+	        -o $$path;\
+	fi
+	@path=target/ft-storage.wasm;\
+	if [ ! -f $$path ]; then\
+	    curl -L\
+	        https://github.com/gear-dapps/sharded-fungible-token/releases/download/0.1.5/ft_storage-0.1.5.opt.wasm\
 	        -o $$path;\
 	fi
 
-test: deps
+full-test: deps
 	@echo ⚙️ Running tests...
 	@cargo +nightly t -Fbinary-vendor
