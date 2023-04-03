@@ -1,14 +1,11 @@
-use super::{common::StateReply, InitResult, Pair, Program, RunResult, FOREIGN_USER};
+use super::{common::StateReply, InitResult, Program, RunResult, FOREIGN_USER};
 use dex_factory::WASM_BINARY_OPT;
 use dex_factory_io::*;
-// use dex_factory_state::{WASM_BINARY, WASM_EXPORTS};
+use dex_factory_state::{WASM_BINARY, WASM_EXPORTS};
 use gstd::{prelude::*, ActorId};
 use gtest::{Program as InnerProgram, System};
 
 type FactoryRunResult<T, R> = RunResult<T, R, Event, Error>;
-
-const WASM_BINARY: &[u8] = include_bytes!("/home/fluid/Documents/Work/gear-dapps/dex/target/wasm32-unknown-unknown/debug/dex_factory_state.meta.wasm");
-const WASM_EXPORTS: [&str; 6] = ["metadata","fee_to","fee_to_setter","pair","all_pairs_length","all_pairs"];
 
 pub struct Factory<'a>(InnerProgram<'a>);
 
@@ -53,13 +50,13 @@ impl<'a> Factory<'a> {
                 .send(FOREIGN_USER, Action::CreatePair(pair.0, pair.1)),
             |event, (token_pair, pair_number)| {
                 if let Event::PairCreated {
-                    token_pair,
+                    token_pair: true_token_pair,
                     pair_actor,
-                    pair_number,
+                    pair_number: true_pair_number,
                 } = event
                 {
-                    assert_eq!(token_pair, (token_pair.0, token_pair.1));
-                    assert_eq!(pair_number, 1);
+                    assert_eq!(token_pair, true_token_pair);
+                    assert_eq!(pair_number, true_pair_number);
 
                     pair_actor.into()
                 } else {
@@ -69,25 +66,29 @@ impl<'a> Factory<'a> {
         )
     }
 
-    pub fn fee_to(&mut self, from: u64, to: u64) -> FactoryRunResult<u64, ()> {
+    pub fn fee_to(&mut self, from: u64, to: impl Into<ActorId>) -> FactoryRunResult<ActorId, ()> {
         RunResult::new(
-            self.0.send(FOREIGN_USER, Action::FeeTo(to.into())),
+            self.0.send(from, Action::FeeTo(to.into())),
             |event, fee_to| {
-                assert_eq!(event, Event::FeeToSet(fee_to.into()));
+                assert_eq!(event, Event::FeeToSet(fee_to));
             },
         )
     }
 
-    pub fn fee_to_setter(&mut self, from: u64, to: u64) -> FactoryRunResult<u64, ()> {
+    pub fn fee_to_setter(
+        &mut self,
+        from: u64,
+        to: impl Into<ActorId>,
+    ) -> FactoryRunResult<u64, ()> {
         RunResult::new(
-            self.0.send(FOREIGN_USER, Action::FeeToSetter(to.into())),
+            self.0.send(from, Action::FeeToSetter(to.into())),
             |event, fee_to_setter| assert!(event == Event::FeeToSetterSet(fee_to_setter.into())),
         )
     }
 
-        pub fn state(&self) -> FactoryState {
-            FactoryState(&self.0)
-        }
+    pub fn state(&self) -> FactoryState {
+        FactoryState(&self.0)
+    }
 }
 
 pub struct FactoryState<'a>(&'a InnerProgram<'a>);
@@ -117,7 +118,7 @@ impl FactoryState<'_> {
         self.query_state_common::<(), _>(fn_index, None)
     }
 
-    pub fn fee_too(self) -> StateReply<ActorId> {
+    pub fn fee_to(self) -> StateReply<ActorId> {
         self.query_state(1)
     }
 

@@ -1,3 +1,4 @@
-pub use super::{factory::Factory, common::Program, Pair, FOREIGN_USER};
-pub use dex_pair_io::*;
-pub use gstd::prelude::*;
+pub use super::{common::Program, factory::Factory, Pair, FOREIGN_USER, SPENT_BLOCKS};
+pub use dex_pair_io::{hidden::U256PairTuple, *};
+pub use gstd::{prelude::*, ActorId};
+pub use primitive_types::U256;

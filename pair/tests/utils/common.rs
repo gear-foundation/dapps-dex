@@ -1,4 +1,3 @@
-use convert::identity;
 use fmt::Debug;
 use gstd::{prelude::*, ActorId};
 use gtest::{Log, Program as InnerProgram, RunResult as InnerRunResult, System};
@@ -106,15 +105,6 @@ impl<Check, CheckResult, Event: Decode + Debug, Error: Decode + Debug + PartialE
     pub fn contains(self, value: Check) {
         (self.check)(decode::<Event>(&self.result), value);
     }
-
-    #[track_caller]
-    pub fn extract(self) -> Result<Event, Error> {
-        Result::decode(&mut self.result.log()[0].payload()).unwrap()
-    }
-
-    pub fn extract_ok(self) -> Event {
-        self.extract().unwrap()
-    }
 }
 
 #[must_use]
@@ -137,12 +127,6 @@ impl<T, E: Encode> InitResult<T, E> {
 
     fn assert_contains(&self, payload: impl Encode) {
         assert_contains(&self.result, payload);
-    }
-
-    #[track_caller]
-    pub fn failed(self, error: E) {
-        assert!(!self.is_active);
-        self.assert_contains(Err::<(), E>(error));
     }
 
     #[track_caller]

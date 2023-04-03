@@ -45,6 +45,10 @@ deps:
 	        -o $$path;\
 	fi
 
-full-test: deps
+test: deps
 	@echo ⚙️ Running tests...
 	@cargo +nightly t -Fbinary-vendor
+
+full-test: deps
+	@echo ⚙️ Running tests...
+	@cargo +nightly t -Fbinary-vendor -- --include-ignored

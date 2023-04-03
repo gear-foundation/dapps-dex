@@ -9,24 +9,28 @@ authors = ["Gear Technologies"]
 gstd = { git = "https://github.com/gear-tech/gear.git", branch = "testnet" }
 dex-pair-io = { path = "io" }
 dex-factory-io = { path = "../factory/io" }
-gear-lib = { git = "https://github.com/gear-dapps/gear-lib.git", rev = "9feeb7c" }
+gear-lib = { git = "https://github.com/gear-dapps/gear-lib.git", branch = "as-dev" }
 ft-main-io = { git = "https://github.com/gear-dapps/sharded-fungible-token.git", branch = "as-derive-debug" }
 ft-logic-io = { git = "https://github.com/gear-dapps/sharded-fungible-token.git", branch = "as-derive-debug" }
 hashbrown = "0.13"
 primitive-types = { version = "0.12", default-features = false }
 
 [dev-dependencies]
-gtest = { git = "https://github.com/gear-tech/gear.git", branch = "testnet" }
+gtest = { git = "https://github.com/gear-tech/gear.git" }
+gclient = { git = "https://github.com/gear-tech/gear.git" }
+gear-core = { git = "https://github.com/gear-tech/gear.git" }
+subxt = { version = "0.27", default-features = false }
 gstd = { git = "https://github.com/gear-tech/gear.git", branch = "testnet", features = ["debug"] }
 pretty_assertions = "1"
-dex-factory = { path = "../factory", default-features = false }
+dex-factory = { path = "../factory" }
 dex-factory-state = { path = "../factory/state" }
 dex-pair-state = { path = "state" }
+sp-core-hashing = "6"
+tokio = "1"
 
 [build-dependencies]
 gear-wasm-builder = { git = "https://github.com/gear-tech/gear.git", branch = "testnet" }
 dex-pair-io = { path = "io" }
 
 [features]
-default = ["binary-vendor"]
 binary-vendor = []

@@ -16,5 +16,4 @@ gear-wasm-builder = { git = "https://github.com/gear-tech/gear.git", branch = "t
 dex-factory-io = { path = "io" }
 
 [features]
-default = ["binary-vendor"]
 binary-vendor = []

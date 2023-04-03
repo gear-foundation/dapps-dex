@@ -12,5 +12,4 @@ dex-factory-io = { path = "../io" }
 gear-wasm-builder = { git = "https://github.com/gear-tech/gear.git", branch = "testnet", features = ["metawasm"] }
 
 [features]
-default = ["binary-vendor"]
 binary-vendor = []

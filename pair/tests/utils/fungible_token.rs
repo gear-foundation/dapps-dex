@@ -41,7 +41,7 @@ impl<'a> FungibleToken<'a> {
     }
 
     #[track_caller]
-    pub fn mint(&mut self, recipient: u64, amount: u128) {
+    pub fn mint(&mut self, recipient: impl Into<ActorId>, amount: u128) {
         let transaction_id = self.transaction_id();
 
         assert_ft_token_event_ok(
