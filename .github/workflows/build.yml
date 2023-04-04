@@ -30,19 +30,8 @@ jobs:
         uses: actions-rs/toolchain@v1
         with:
           toolchain: nightly
-          components: clippy, rustfmt, llvm-tools-preview
+          components: clippy, rustfmt
           target: wasm32-unknown-unknown
-
-      - name: Install pinned nightly toolchain
-        uses: actions-rs/toolchain@v1
-        with:
-          toolchain: nightly-2023-03-14
-          components: clippy, rustfmt, llvm-tools-preview
-          target: wasm32-unknown-unknown
-
-      - name: Pin a toolchain
-        run: |
-          ln -s ~/.rustup/toolchains/nightly-2023-03-14-x86_64-unknown-linux-gnu ~/.rustup/toolchains/nightly-x86_64-unknown-linux-gnu
 
       - name: Install binaryen
         run: |
@@ -54,6 +43,13 @@ jobs:
 
       - name: Run linter
         run: make lint
+
+      - name: Pin a toolchain
+        run: |
+          rustup toolchain install nightly-2023-03-14 --component llvm-tools-preview
+          rustup target add wasm32-unknown-unknown --toolchain nightly-2023-03-14
+          rm -rf ~/.rustup/toolchains/nightly-x86_64-unknown-linux-gnu
+          ln -s ~/.rustup/toolchains/nightly-2023-03-14-x86_64-unknown-linux-gnu ~/.rustup/toolchains/nightly-x86_64-unknown-linux-gnu
 
       - name: Run tests
         run: |
