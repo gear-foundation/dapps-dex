@@ -30,14 +30,14 @@ jobs:
         uses: actions-rs/toolchain@v1
         with:
           toolchain: nightly
-          components: clippy, rustfmt
+          components: clippy, rustfmt, llvm-tools-preview
           target: wasm32-unknown-unknown
 
       - name: Install pinned nightly toolchain
         uses: actions-rs/toolchain@v1
         with:
           toolchain: nightly-2023-03-14
-          components: clippy, rustfmt
+          components: clippy, rustfmt, llvm-tools-preview
           target: wasm32-unknown-unknown
 
       - name: Pin a toolchain
