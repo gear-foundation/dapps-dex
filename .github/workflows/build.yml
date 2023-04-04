@@ -26,17 +26,17 @@ jobs:
       - name: Remove binaries from cache
         run: rm -vfr target/wasm32-unknown-unknown/*
 
-      - name: Install pinned nightly toolchain
-        uses: actions-rs/toolchain@v1
-        with:
-          toolchain: nightly-2023-03-14
-          components: clippy, rustfmt
-          target: wasm32-unknown-unknown
-
       - name: Install nightly toolchain
         uses: actions-rs/toolchain@v1
         with:
           toolchain: nightly
+          components: clippy, rustfmt
+          target: wasm32-unknown-unknown
+
+      - name: Install pinned nightly toolchain
+        uses: actions-rs/toolchain@v1
+        with:
+          toolchain: nightly-2023-03-14
           components: clippy, rustfmt
           target: wasm32-unknown-unknown
 
