@@ -33,6 +33,11 @@ jobs:
           components: clippy, rustfmt
           target: wasm32-unknown-unknown
 
+      - name: Pin a toolchain
+        run: |
+          rm -rf ~/.rustup/toolchains/nightly-x86_64-unknown-linux-gnu
+          ln -s ~/.rustup/toolchains/nightly-2023-03-14-x86_64-unknown-linux-gnu ~/.rustup/toolchains/nightly-x86_64-unknown-linux-gnu
+
       - name: Install binaryen
         run: |
           wget -c https://github.com/WebAssembly/binaryen/releases/download/version_110/binaryen-version_110-x86_64-linux.tar.gz -O - | tar -xz -C .
