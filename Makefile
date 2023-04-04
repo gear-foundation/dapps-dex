@@ -4,7 +4,7 @@ all: init build test
 
 build:
 	@echo ⚙️ Building a release...
-	@cargo +nightly b -r
+	@cargo b -r
 	@ls -l target/wasm32-unknown-unknown/release/*.wasm
 
 fmt:
@@ -20,8 +20,8 @@ init:
 
 lint:
 	@echo ⚙️ Running the linter...
-	@cargo +nightly clippy -- -D warnings
-	@cargo +nightly clippy --all-targets -Fbinary-vendor -- -D warnings
+	@cargo clippy -- -D warnings
+	@cargo clippy --all-targets -Fbinary-vendor -- -D warnings
 
 pre-commit: fmt lint test
 
@@ -49,8 +49,8 @@ deps:
 
 test: deps
 	@echo ⚙️ Running tests...
-	@cargo +nightly t -Fbinary-vendor
+	@cargo t -Fbinary-vendor
 
 full-test: deps
 	@echo ⚙️ Running tests...
-	@cargo +nightly t -Fbinary-vendor -- --include-ignored
+	@cargo t -Fbinary-vendor -- --include-ignored
