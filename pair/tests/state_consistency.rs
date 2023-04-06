@@ -1,8 +1,7 @@
 use dex_pair::WASM_BINARY_OPT;
 use dex_pair_io::*;
 use fmt::Debug;
-use ft_logic_io::Action as FTAction;
-use ft_main_io::{FTokenAction, FTokenEvent, InitFToken};
+use ft_main_io::{FTokenAction, FTokenEvent, InitFToken, LogicAction};
 use gclient::{Error as GclientError, EventListener, EventProcessor, GearApi, Result};
 use gear_core::ids::CodeId;
 use gstd::{prelude::*, ActorId};
@@ -260,11 +259,10 @@ async fn state_consistency() -> Result<()> {
             ft_actor_id_a,
             FTokenAction::Message {
                 transaction_id: 0,
-                payload: FTAction::Mint {
+                payload: LogicAction::Mint {
                     recipient: ALICE.into(),
                     amount,
-                }
-                .encode(),
+                },
             },
         )
         .await?
@@ -277,11 +275,10 @@ async fn state_consistency() -> Result<()> {
             ft_actor_id_b,
             FTokenAction::Message {
                 transaction_id: 0,
-                payload: FTAction::Mint {
+                payload: LogicAction::Mint {
                     recipient: ALICE.into(),
                     amount: liquidity,
-                }
-                .encode(),
+                },
             },
         )
         .await?
@@ -295,11 +292,10 @@ async fn state_consistency() -> Result<()> {
             ft_actor_id_a,
             FTokenAction::Message {
                 transaction_id: 1,
-                payload: FTAction::Approve {
+                payload: LogicAction::Approve {
                     approved_account: pair_actor_id,
                     amount,
-                }
-                .encode(),
+                },
             },
         )
         .await?
@@ -312,11 +308,10 @@ async fn state_consistency() -> Result<()> {
             ft_actor_id_b,
             FTokenAction::Message {
                 transaction_id: 1,
-                payload: FTAction::Approve {
+                payload: LogicAction::Approve {
                     approved_account: pair_actor_id,
                     amount: liquidity,
-                }
-                .encode(),
+                },
             },
         )
         .await?

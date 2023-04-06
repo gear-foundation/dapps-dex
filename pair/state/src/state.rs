@@ -1,6 +1,3 @@
-// FIXME: remove the allowance when `gmeta/codegen` will be updated.
-#![allow(deprecated)]
-
 use dex_pair_io::{
     hidden::{calculate_in_amount, calculate_out_amount, quote},
     *,

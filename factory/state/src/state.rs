@@ -1,6 +1,3 @@
-// FIXME: remove the allowance when `gmeta/codegen` will be updated.
-#![allow(deprecated)]
-
 use dex_factory_io::*;
 use gmeta::{metawasm, Metadata};
 use gstd::{prelude::*, ActorId};

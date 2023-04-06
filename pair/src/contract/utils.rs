@@ -1,7 +1,6 @@
 use super::tx_manager::TransactionGuard;
 use dex_pair_io::*;
-use ft_logic_io::Action;
-use ft_main_io::{FTokenAction, FTokenEvent};
+use ft_main_io::{FTokenAction, FTokenEvent, LogicAction};
 use gstd::{
     errors::Result as GstdResult,
     msg::{self, CodecMessageFuture},
@@ -22,12 +21,11 @@ pub async fn transfer_tokens<T>(
 ) -> Result<(), Error> {
     let payload = FTokenAction::Message {
         transaction_id: tx_guard.step()?,
-        payload: Action::Transfer {
+        payload: LogicAction::Transfer {
             sender,
             recipient,
             amount,
-        }
-        .encode(),
+        },
     };
 
     if FTokenEvent::Ok != send(token, payload)?.await? {
