@@ -1,8 +1,8 @@
 use dex_factory::WASM_BINARY_OPT;
-use dex_pair_state::WASM_BINARY;
 use dex_factory_io::*;
 use dex_pair_io::FungibleId;
 use dex_pair_io::*;
+use dex_pair_state::WASM_BINARY;
 use ft_io::*;
 use gstd::{prelude::*, ActorId};
 use gtest::{Program, RunResult, System};

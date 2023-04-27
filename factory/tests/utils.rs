@@ -1,7 +1,7 @@
 use dex_factory_io::*;
+use dex_factory_state::WASM_BINARY;
 use gstd::{prelude::*, ActorId};
 use gtest::{Program, RunResult, System};
-use dex_factory_state::WASM_BINARY;
 
 pub const USER: u64 = 10;
 pub const FEE_SETTER: u64 = 11;
