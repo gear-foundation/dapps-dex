@@ -14,20 +14,12 @@ pub mod metafns {
         state.fee_to_setter
     }
 
-    pub fn pair(state: State, mut pair: (ActorId, ActorId)) -> ActorId {
-        if pair.1 > pair.0 {
-            pair = (pair.1, pair.0);
-        }
-
-        state
-            .pairs
-            .into_iter()
-            .find_map(|(existing_pair, actor)| (existing_pair == pair).then_some(actor))
-            .unwrap_or_default()
+    pub fn pair(state: State, pair: (ActorId, ActorId)) -> ActorId {
+        state.pair(pair)
     }
 
     pub fn all_pairs_length(state: State) -> u32 {
-        state.pairs.len() as _
+        state.pairs.len().try_into().unwrap()
     }
 
     pub fn all_pairs(state: State) -> Vec<((ActorId, ActorId), ActorId)> {

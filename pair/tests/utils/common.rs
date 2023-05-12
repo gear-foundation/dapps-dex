@@ -1,9 +1,5 @@
-use fmt::Debug;
-use gstd::{prelude::*, ActorId};
+use gstd::{fmt::Debug, marker::PhantomData, prelude::*, ActorId};
 use gtest::{Log, Program as InnerProgram, RunResult as InnerRunResult, System};
-use hash::Hash;
-use hashbrown::HashSet;
-use marker::PhantomData;
 use pretty_assertions::assert_eq;
 
 pub fn initialize_system() -> System {
@@ -46,18 +42,6 @@ impl<T: Debug + PartialEq> StateReply<T> {
     }
 }
 
-impl<T: Eq + Hash> From<StateReply<Vec<T>>> for StateReply<HashSet<T>> {
-    fn from(value: StateReply<Vec<T>>) -> Self {
-        Self(value.0.into_iter().collect())
-    }
-}
-
-impl<K: Eq + Hash, V> From<StateReply<Vec<(K, V)>>> for StateReply<HashMap<K, V>> {
-    fn from(value: StateReply<Vec<(K, V)>>) -> Self {
-        Self(value.0.into_iter().collect())
-    }
-}
-
 #[must_use]
 pub struct RunResult<Check, CheckResult, Event, Error> {
     pub result: InnerRunResult,
@@ -76,11 +60,6 @@ impl<Check, CheckResult, Event: Decode + Debug, Error: Decode + Debug + PartialE
         }
     }
 
-    // #[track_caller]
-    // fn assert_contains(self, payload: impl Encode) {
-    //     assert_contains(&self.result, payload);
-    // }
-
     #[track_caller]
     pub fn failed(self, error: Error) {
         assert_eq!(
@@ -88,13 +67,6 @@ impl<Check, CheckResult, Event: Decode + Debug, Error: Decode + Debug + PartialE
             error
         );
     }
-
-    // #[track_caller]
-    // fn common_succeed<V: Encode>(self, value: T, wrap: fn(R) -> V) {
-    //     let event = (self.event)(value);
-
-    //     self.assert_contains(wrap(event));
-    // }
 
     #[track_caller]
     pub fn succeed(self, value: Check) -> CheckResult {
@@ -144,5 +116,8 @@ fn assert_contains(result: &InnerRunResult, payload: impl Encode) {
 }
 
 fn decode<T: Decode>(result: &InnerRunResult) -> T {
-    T::decode(&mut result.log()[0].payload()).unwrap()
+    match T::decode(&mut result.log()[0].payload()) {
+        Ok(ok) => ok,
+        Err(_) => panic!("{}", String::from_utf8_lossy(result.log()[0].payload())),
+    }
 }

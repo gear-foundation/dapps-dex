@@ -134,9 +134,7 @@ impl FactoryState<'_> {
         self.query_state(4)
     }
 
-    pub fn all_pairs(self) -> StateReply<HashMap<(ActorId, ActorId), ActorId>> {
-        let result: StateReply<Vec<_>> = self.query_state(5);
-
-        result.into()
+    pub fn all_pairs(self) -> StateReply<Vec<((ActorId, ActorId), ActorId)>> {
+        self.query_state(5)
     }
 }

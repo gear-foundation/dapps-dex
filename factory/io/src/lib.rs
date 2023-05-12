@@ -17,12 +17,25 @@ impl Metadata for ContractMetadata {
 /// The contract state.
 ///
 /// For more info about fields, see [`Initialize`].
-#[derive(Default, Encode, Decode, TypeInfo, Debug, PartialEq, Eq, PartialOrd, Ord, Clone, Hash)]
+#[derive(Default, Debug, Encode, Decode, PartialEq, Eq, PartialOrd, Ord, Clone, TypeInfo, Hash)]
 pub struct State {
     pub pair: CodeId,
     pub fee_to: ActorId,
     pub fee_to_setter: ActorId,
     pub pairs: Vec<((ActorId, ActorId), ActorId)>,
+}
+
+impl State {
+    pub fn pair(&self, mut pair: (ActorId, ActorId)) -> ActorId {
+        if pair.1 > pair.0 {
+            pair = (pair.1, pair.0);
+        }
+
+        self.pairs
+            .iter()
+            .find_map(|(existing_pair, actor)| (*existing_pair == pair).then_some(*actor))
+            .unwrap_or_default()
+    }
 }
 
 /// Initializes the contract.
@@ -41,7 +54,7 @@ pub struct Initialize {
 }
 
 /// Sends the contract info about what it should do.
-#[derive(Encode, Decode, TypeInfo, Debug, PartialEq, Eq, PartialOrd, Ord, Clone, Copy, Hash)]
+#[derive(Debug, Encode, Decode, PartialEq, Eq, PartialOrd, Ord, Clone, Copy, TypeInfo, Hash)]
 pub enum Action {
     /// Creates a Pair contract instance from a pair of
     /// (SFT)[https://github.com/gear-dapps/sharded-fungible-token]
@@ -87,7 +100,7 @@ pub enum Action {
 }
 
 /// A result of successfully processed [`Action`].
-#[derive(Encode, Decode, TypeInfo, Debug, PartialEq, Eq, PartialOrd, Ord, Clone, Copy, Hash)]
+#[derive(Debug, Encode, Decode, PartialEq, Eq, PartialOrd, Ord, Clone, Copy, TypeInfo, Hash)]
 pub enum Event {
     /// Should be returned from [`Action::CreatePair`].
     PairCreated {
@@ -114,7 +127,7 @@ pub enum Event {
 }
 
 /// Error variants of failed [`Action`].
-#[derive(Encode, Decode, TypeInfo, Debug, PartialEq, Eq, PartialOrd, Ord, Clone, Hash)]
+#[derive(Debug, Encode, Decode, PartialEq, Eq, PartialOrd, Ord, Clone, TypeInfo, Hash)]
 pub enum Error {
     /// See [`ContractError`].
     ContractError(String),

@@ -1,12 +1,17 @@
 #![no_std]
 
-use gear_lib::{
-    fungible_token::{FTApproval, FTError, FTState, FTTransfer, FungibleToken},
-    StorageProvider,
-};
+use gear_lib::tx_manager;
 use gmeta::{InOut, Metadata};
 use gstd::{errors::ContractError, prelude::*, ActorId};
 use primitive_types::U256;
+
+pub use gear_lib::{
+    tokens::{
+        fungible::{encodable::FTState, FTError, FTTransfer},
+        types::Amount,
+    },
+    tx_manager::TransactionManagerError,
+};
 
 /// The minimal liquidity amount.
 ///
@@ -27,20 +32,7 @@ impl Metadata for ContractMetadata {
 }
 
 /// The contract state.
-#[derive(
-    Default,
-    Encode,
-    Decode,
-    TypeInfo,
-    Debug,
-    PartialEq,
-    Eq,
-    PartialOrd,
-    Ord,
-    Clone,
-    Hash,
-    StorageProvider,
-)]
+#[derive(Default, Debug, Encode, Decode, PartialEq, Eq, PartialOrd, Ord, Clone, TypeInfo, Hash)]
 pub struct State {
     /// [`ActorId`] of the Factory contract from which [`ActorId`] of the fee
     /// receiver (`fee_to`) is obtained.
@@ -52,30 +44,17 @@ pub struct State {
     pub reserve: (u128, u128),
     /// https://docs.uniswap.org/contracts/v2/concepts/core-concepts/oracles
     pub cumulative_price: (U256, U256),
-
     /// A timestamp of the last block where `reserve`s were changed.
     pub last_block_ts: u64,
     /// A product of `reserve`s. Used for the 0.05% commission calculation.
     pub k_last: U256,
-
-    #[storage_field]
     pub ft_state: FTState,
 
     pub cached_actions: Vec<(ActorId, CachedAction)>,
 }
 
-impl FungibleToken for State {
-    fn reply_transfer(&self, _transfer: FTTransfer) -> Result<(), FTError> {
-        Ok(())
-    }
-
-    fn reply_approval(&self, _approval: FTApproval) -> Result<(), FTError> {
-        Ok(())
-    }
-}
-
 /// A part of [`Action`].
-#[derive(Encode, Decode, TypeInfo, Debug, PartialEq, Eq, PartialOrd, Ord, Clone, Copy, Hash)]
+#[derive(Debug, Encode, Decode, PartialEq, Eq, PartialOrd, Ord, Clone, Copy, TypeInfo, Hash)]
 pub enum InnerAction {
     /// Adds liquidity to the contract from [`msg::source()`]'s fungible tokens
     /// and mints liquidity tokens to it.
@@ -112,7 +91,7 @@ pub enum InnerAction {
     /// tokens than a given one.
     RemoveLiquidity {
         /// An amount of liquidity tokens to remove.
-        liquidity: U256,
+        liquidity: Amount,
         /// A minimum amount of the A tokens that must be received for this
         /// action not to revert.
         amount_a_min: u128,
@@ -132,6 +111,7 @@ pub enum InnerAction {
     /// - `to` mustn't equal to the contract's SFT pair.
     /// - `amount_in` mustn't equal to 0.
     SwapExactTokensForTokens {
+        swap_kind: SwapKind,
         amount_in: u128,
         /// A minimum amount of output tokens that must be received for this
         /// action not to revert.
@@ -140,7 +120,6 @@ pub enum InnerAction {
         to: ActorId,
         /// Timestamp (in ms) after which this action will revert.
         deadline: u64,
-        swap_kind: SwapKind,
     },
 
     /// Swaps an exact amount of output tokens for as few input tokens as
@@ -150,6 +129,7 @@ pub enum InnerAction {
     /// - `to` mustn't equal to the contract's SFT pair.
     /// - `amount_out` mustn't equal to 0.
     SwapTokensForExactTokens {
+        swap_kind: SwapKind,
         amount_out: u128,
         /// A maximum amount of input tokens that must be received for this
         /// action not to revert.
@@ -158,7 +138,6 @@ pub enum InnerAction {
         to: ActorId,
         /// Timestamp (in ms) after which this action will revert.
         deadline: u64,
-        swap_kind: SwapKind,
     },
 
     /// Syncs the contract's tokens reserve with actual contract's balances by
@@ -177,34 +156,14 @@ pub enum InnerAction {
     /// # Requirements
     /// - [`msg::source()`] must have the same or a greater amount of liquidity
     /// tokens than a given one.
-    Transfer { to: ActorId, amount: U256 },
+    Transfer { to: ActorId, amount: Amount },
 }
 
 /// Sends the contract info about what it should do.
-#[derive(Encode, Decode, TypeInfo, Debug, PartialEq, Eq, PartialOrd, Ord, Clone, Copy, Hash)]
-pub struct Action {
-    pub action: InnerAction,
-    pub kind: TransactionKind,
-}
-
-impl Action {
-    pub fn new(action: InnerAction) -> Self {
-        Self {
-            action,
-            kind: TransactionKind::New,
-        }
-    }
-
-    pub fn to_retry(self) -> Self {
-        Self {
-            action: self.action,
-            kind: TransactionKind::Retry,
-        }
-    }
-}
+pub type Action = tx_manager::Action<InnerAction>;
 
 /// A result of successfully processed [`Action`].
-#[derive(Encode, Decode, TypeInfo, Debug, PartialEq, Eq, PartialOrd, Ord, Clone, Copy, Hash)]
+#[derive(Debug, Encode, Decode, PartialEq, Eq, PartialOrd, Ord, Clone, Copy, TypeInfo, Hash)]
 pub enum Event {
     /// Should be returned from [`InnerAction::AddLiquidity`].
     AddedLiquidity {
@@ -214,7 +173,7 @@ pub enum Event {
         /// An amount of the B token sent to the contract.
         amount_b: u128,
         /// An amount of liquidity tokens minted.
-        liquidity: U256,
+        liquidity: Amount,
     },
     /// Should be returned from [`InnerAction::RemoveLiquidity`].
     RemovedLiquidity {
@@ -229,11 +188,11 @@ pub enum Event {
     /// Should be returned from
     /// [`InnerAction::SwapExactTokensForTokens`]/[`InnerAction::SwapTokensForExactTokens`].
     Swap {
+        kind: SwapKind,
         sender: ActorId,
         in_amount: u128,
         out_amount: u128,
         to: ActorId,
-        kind: SwapKind,
     },
     /// Should be returned from [`InnerAction::Sync`].
     Sync {
@@ -252,21 +211,23 @@ pub enum Event {
         to: ActorId,
     },
     /// Should be returned from [`InnerAction::Transfer`].
-    Transfer {
-        from: ActorId,
-        to: ActorId,
-        amount: U256,
-    },
+    Transfer(FTTransfer),
 }
 
-#[derive(Encode, Decode, TypeInfo, Debug, PartialEq, Eq, PartialOrd, Ord, Clone, Copy, Hash)]
+impl From<FTTransfer> for Event {
+    fn from(value: FTTransfer) -> Self {
+        Self::Transfer(value)
+    }
+}
+
+#[derive(Debug, Encode, Decode, PartialEq, Eq, PartialOrd, Ord, Clone, Copy, TypeInfo, Hash)]
 pub enum SwapKind {
     AForB,
     BForA,
 }
 
 /// Error variants of failed [`Action`].
-#[derive(Encode, Decode, TypeInfo, Debug, PartialEq, Eq, PartialOrd, Ord, Clone, Hash)]
+#[derive(Debug, Encode, Decode, PartialEq, Eq, PartialOrd, Ord, Clone, TypeInfo, Hash)]
 pub enum Error {
     /// See [`ContractError`].
     ContractError(String),
@@ -293,10 +254,12 @@ pub enum Error {
     Overflow,
     /// A specified deadline for an action was exceeded.
     DeadlineExceeded,
+    IdenticalTokens,
+    FTError(FTError),
     /// The contract failed to get fee receiver (`fee_to`) [`ActorId`] from the
     /// linked Factory contract.
     FeeToGettingFailed,
-    TxCacheError(TransactionCacheError),
+    TxCacheError(TransactionManagerError),
 }
 
 impl From<ContractError> for Error {
@@ -305,63 +268,24 @@ impl From<ContractError> for Error {
     }
 }
 
-#[derive(Encode, Decode, TypeInfo, Debug, PartialEq, Eq, PartialOrd, Ord, Clone, Copy, Hash)]
+impl From<TransactionManagerError> for Error {
+    fn from(error: TransactionManagerError) -> Self {
+        Self::TxCacheError(error)
+    }
+}
+
+impl From<FTError> for Error {
+    fn from(error: FTError) -> Self {
+        Self::FTError(error)
+    }
+}
+
+#[derive(Debug, Encode, Decode, PartialEq, Eq, PartialOrd, Ord, Clone, Copy, TypeInfo, Hash)]
 pub enum CachedAction {
     Swap(u128),
     AddLiquidity((u128, u128)),
-    RemovedLiquidity(U256),
+    RemovedLiquidity { amount: Amount, is_burned: bool },
     Other,
-}
-
-/// A part of [`Action`].
-///
-/// Determines how an action will be processed.
-///
-/// The contract has a transaction caching mechanism for a continuation of
-/// partially processed asynchronous actions. Most often, the reason of an
-/// underprocession is the lack of gas.
-///
-/// Important notes:
-/// - Only the last sent asynchronous action for
-/// [`msg::source()`](gstd::msg::source) is cached.
-/// - Non-asynchronous actions are never cached.
-/// - There's no guarantee every underprocessed asynchronous action will be
-/// cached.
-/// - It's possible to send a retry action with a different payload, and it'll
-/// continue with it because, for some action, not all payload is saved in the
-/// cache.
-/// - The cache memory has a limit, so when it's reached every oldest cached
-/// action is replaced with a new one.
-#[derive(
-    Default, Encode, Decode, TypeInfo, Debug, PartialEq, Eq, PartialOrd, Ord, Clone, Copy, Hash,
-)]
-pub enum TransactionKind {
-    #[default]
-    New,
-    Retry,
-}
-
-/// Transaction cache error variants.
-///
-/// Also see [`TransactionKind`].
-#[derive(Encode, Decode, TypeInfo, Debug, PartialEq, Eq, PartialOrd, Ord, Clone, Copy, Hash)]
-pub enum TransactionCacheError {
-    /// There's no cached transaction for
-    /// [`msg::source()`](gstd::msg::source()). The reason may be a
-    /// transaction's action wasn't asynchronous or just wasn't cached, or a
-    /// cached transaction has been removed because it was completed or too old.
-    TransactionNotFound,
-    /// An action for retrying doesn't match its cached counterpart.
-    MismatchedAction,
-    /// Too many transaction IDs were acquired in one action. The maximum amount
-    /// is 256.
-    StepOverflow,
-}
-
-impl From<TransactionCacheError> for Error {
-    fn from(error: TransactionCacheError) -> Self {
-        Self::TxCacheError(error)
-    }
 }
 
 #[doc(hidden)]
@@ -379,11 +303,9 @@ pub mod hidden {
     pub fn quote_unchecked(amount: u128, reserve: (u128, u128)) -> Result<u128, Error> {
         let U256PairTuple(reserve) = reserve.into();
 
-        if let Ok(result) = (U256::from(amount) * reserve.1 / reserve.0).try_into() {
-            Ok(result)
-        } else {
-            Err(Error::Overflow)
-        }
+        (U256::from(amount) * reserve.1 / reserve.0)
+            .try_into()
+            .map_or(Err(Error::Overflow), Ok)
     }
 
     pub fn quote_reserve_unchecked(amount: u128, reserve: (u128, u128)) -> Result<u128, Error> {
@@ -398,15 +320,16 @@ pub mod hidden {
         perform_precalculate_check(in_amount, reserve)?;
 
         let amount_with_fee: U256 = U256::from(in_amount) * 997;
-        if let Some(numerator) = amount_with_fee.checked_mul(reserve.1.into()) {
-            // Shouldn't overflow.
-            let denominator = U256::from(reserve.0) * 1000 + amount_with_fee;
 
-            // Shouldn't be more than u128::MAX, so casting doesn't lose data.
-            Ok((numerator / denominator).low_u128())
-        } else {
-            Err(Error::Overflow)
-        }
+        amount_with_fee
+            .checked_mul(reserve.1.into())
+            .map_or(Err(Error::Overflow), |numerator| {
+                // Shouldn't overflow.
+                let denominator = U256::from(reserve.0) * 1000 + amount_with_fee;
+
+                // Shouldn't be more than u128::MAX, so casting doesn't lose data.
+                Ok((numerator / denominator).low_u128())
+            })
     }
 
     pub fn calculate_in_amount(out_amount: u128, reserve: (u128, u128)) -> Result<u128, Error> {
@@ -424,18 +347,19 @@ pub mod hidden {
 
                 // Adding 1 here to avoid abuse of the case when a calculated input
                 // amount will equal 0.
-                if let Ok(in_amount) = (numerator / denominator + 1).try_into() {
-                    Ok(in_amount)
-                } else {
-                    Err(Error::Overflow)
-                }
+                (numerator / denominator + 1)
+                    .try_into()
+                    .map_or(Err(Error::Overflow), Ok)
             }
         } else {
             Err(Error::Overflow)
         }
     }
 
-    pub fn perform_precalculate_check(amount: u128, reserve: (u128, u128)) -> Result<(), Error> {
+    pub const fn perform_precalculate_check(
+        amount: u128,
+        reserve: (u128, u128),
+    ) -> Result<(), Error> {
         if reserve.0 == 0 || reserve.1 == 0 {
             Err(Error::InsufficientLiquidity)
         } else if amount == 0 {
@@ -455,7 +379,7 @@ pub mod hidden {
 
     #[cfg(test)]
     mod tests {
-        use super::{super::Error, calculate_in_amount, calculate_out_amount, quote_unchecked};
+        use super::{calculate_in_amount, calculate_out_amount, quote_unchecked, Error};
 
         #[test]
         fn quote() {

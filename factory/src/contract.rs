@@ -1,9 +1,8 @@
 use dex_factory_io::*;
 use gstd::{
     errors::Result as GstdResult, exec, msg, prelude::*, prog::ProgramGenerator, ActorId, CodeId,
-    MessageId,
+    HashMap, MessageId,
 };
-use hashbrown::HashMap;
 
 struct Contract {
     pair: CodeId,
@@ -16,17 +15,17 @@ static mut STATE: Option<Contract> = None;
 
 impl Contract {
     fn check_fee_to_setter(&self) -> Result<(), Error> {
-        if self.fee_to_setter != msg::source() {
-            Err(Error::AccessRestricted)
-        } else {
+        if self.fee_to_setter == msg::source() {
             Ok(())
+        } else {
+            Err(Error::AccessRestricted)
         }
     }
 
     fn set_fee_to_setter(&mut self, actor: ActorId) -> Result<Event, Error> {
         self.check_fee_to_setter()?;
 
-        if actor == ActorId::zero() {
+        if actor.is_zero() {
             return Err(Error::ZeroActorId);
         }
 
@@ -48,7 +47,7 @@ impl Contract {
             return Err(Error::IdenticalTokens);
         }
 
-        if token_a == ActorId::zero() || token_b == ActorId::zero() {
+        if token_a.is_zero() || token_b.is_zero() {
             return Err(Error::ZeroActorId);
         }
 
@@ -73,7 +72,7 @@ impl Contract {
         Ok(Event::PairCreated {
             token_pair,
             pair_actor,
-            pair_number: self.pairs.len() as _,
+            pair_number: self.pairs.len().try_into().unwrap(),
         })
     }
 }
@@ -127,11 +126,7 @@ async fn process_handle() -> Result<Event, Error> {
 }
 
 fn state_mut() -> &'static mut Contract {
-    let state = unsafe { STATE.as_mut() };
-
-    debug_assert!(state.is_some(), "state isn't initialized");
-
-    unsafe { state.unwrap_unchecked() }
+    unsafe { STATE.as_mut().expect("state isn't initialized") }
 }
 
 #[no_mangle]

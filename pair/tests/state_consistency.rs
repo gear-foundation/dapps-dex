@@ -16,6 +16,9 @@ const ALICE: [u8; 32] = [
     212, 53, 147, 199, 21, 253, 211, 28, 97, 20, 26, 189, 4, 169, 159, 214, 130, 44, 133, 88, 133,
     76, 205, 227, 154, 86, 132, 231, 165, 109, 162, 125,
 ];
+const FT_MAIN: &str = "../target/ft_main.wasm";
+const FT_STORAGE: &str = "../target/ft_storage.wasm";
+const FT_LOGIC: &str = "../target/ft_logic.wasm";
 
 fn decode<T: Decode>(payload: Vec<u8>) -> Result<T> {
     Ok(T::decode(&mut payload.as_slice())?)
@@ -30,7 +33,7 @@ async fn upload_code_common(
         Err(GclientError::Subxt(SubxtError::Runtime(DispatchError::Module(ModuleError {
             error_data:
                 ModuleErrorData {
-                    pallet_index: 14,
+                    pallet_index: 104,
                     error: [6, 0, 0, 0],
                 },
             ..
@@ -40,7 +43,7 @@ async fn upload_code_common(
 
     Ok(code_id.into())
 }
-//
+
 async fn upload_code(client: &GearApi, code: &[u8]) -> Result<H256> {
     upload_code_common(client.upload_code(code).await, || Ok(code.to_vec())).await
 }
@@ -186,32 +189,38 @@ async fn send_message_with_insufficient_gas(
 #[tokio::test]
 #[ignore]
 async fn state_consistency() -> Result<()> {
-    let client = GearApi::dev_from_path(env!("GEAR_NODE_PATH")).await?;
+    let client = GearApi::dev_from_path(env!("GEAR_NODE_PATH"))
+        .await
+        .unwrap();
     let mut listener = client.subscribe().await?;
 
-    let storage_code_hash = upload_code_by_path(&client, "../target/ft-storage.wasm").await?;
-    let ft_logic_code_hash = upload_code_by_path(&client, "../target/ft-logic.wasm").await?;
+    let storage_code_hash = upload_code_by_path(&client, FT_STORAGE).await?;
+    let ft_logic_code_hash = upload_code_by_path(&client, FT_LOGIC).await?;
 
-    let ft_actor_id_a = upload_program(
+    let mut ft_actor_id_a = upload_program(
         &client,
         &mut listener,
-        "../target/ft-main.wasm",
+        FT_MAIN,
         InitFToken {
             storage_code_hash,
             ft_logic_code_hash,
         },
     )
     .await?;
-    let ft_actor_id_b = upload_program(
+    let mut ft_actor_id_b = upload_program(
         &client,
         &mut listener,
-        "../target/ft-main.wasm",
+        FT_MAIN,
         InitFToken {
             storage_code_hash,
             ft_logic_code_hash,
         },
     )
     .await?;
+
+    if ft_actor_id_a < ft_actor_id_b {
+        (ft_actor_id_a, ft_actor_id_b) = (ft_actor_id_b, ft_actor_id_a)
+    };
 
     let pair_code_hash = upload_code(&client, WASM_BINARY_OPT).await?;
     let (factory_actor_id, reply) =
@@ -387,8 +396,19 @@ async fn state_consistency() -> Result<()> {
         deadline,
     };
 
+    println!(
+        "{:?}",
+        send_message_with_insufficient_gas(&client, &mut listener, pair_actor_id.into(), action)
+            .await?
+    );
     assert_eq!(
-        send_message_for_pair(&client, &mut listener, pair_actor_id.into(), action,).await?,
+        send_message_for_pair(
+            &client,
+            &mut listener,
+            pair_actor_id.into(),
+            action.to_retry()
+        )
+        .await?,
         Ok(Event::RemovedLiquidity {
             sender: ALICE.into(),
             amount_a: 98000,

@@ -312,7 +312,7 @@ fn factory() {
     let fungible_token_a = FungibleToken::initialize(&system);
     let actor_pair = (fungible_token_a.actor_id(), fungible_token_b.actor_id());
 
-    factory.state().all_pairs().eq(HashMap::new());
+    factory.state().all_pairs().eq(vec![]);
     factory.state().all_pairs_length().eq(0);
     factory.state().pair(actor_pair).eq(ActorId::zero());
 
@@ -324,7 +324,7 @@ fn factory() {
     factory
         .state()
         .all_pairs()
-        .eq(HashMap::from([(actor_pair, pair_actor)]));
+        .eq(vec![(actor_pair, pair_actor)]);
     factory.state().all_pairs_length().eq(1);
     factory.state().pair(actor_pair).eq(pair_actor);
 

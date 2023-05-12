@@ -71,6 +71,7 @@ impl<'a> FungibleToken<'a> {
         ));
     }
 
+    #[track_caller]
     pub fn balance(&self, actor_id: impl Into<ActorId>) -> RunResult<u128, (), FTokenEvent, ()> {
         RunResult::new(
             self.0

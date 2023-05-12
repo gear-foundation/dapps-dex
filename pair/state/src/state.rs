@@ -2,14 +2,12 @@ use dex_pair_io::{
     hidden::{calculate_in_amount, calculate_out_amount, quote},
     *,
 };
-use gear_lib::fungible_token::{FTCore, FTState};
 use gmeta::{metawasm, Metadata};
 use gstd::{prelude::*, ActorId};
 use primitive_types::U256;
 
 #[metawasm]
 pub mod metafns {
-
     pub type State = <ContractMetadata as Metadata>::State;
 
     pub fn token(state: State) -> (ActorId, ActorId) {
@@ -29,7 +27,7 @@ pub mod metafns {
     }
 
     pub fn balance_of(state: State, actor: ActorId) -> U256 {
-        FTCore::balance_of(&state, actor)
+        state.ft_state.balance_of(actor)
     }
 
     pub fn factory(state: State) -> ActorId {

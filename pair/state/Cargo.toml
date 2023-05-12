@@ -1,17 +1,18 @@
 [package]
 name = "dex-pair-state"
-version = "0.1.1"
-edition = "2021"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+authors.workspace = true
 
 [dependencies]
-gstd = { git = "https://github.com/gear-tech/gear.git", branch = "testnet" }
-gmeta = { git = "https://github.com/gear-tech/gear.git", branch = "testnet", features = ["codegen"] }
-dex-pair-io = { path = "../io" }
-primitive-types = { version = "0.12", default-features = false }
-gear-lib = { git = "https://github.com/gear-dapps/gear-lib.git", branch = "as-dev" }
+gstd.workspace = true
+gmeta = { workspace = true, features = ["codegen"] }
+dex-pair-io.workspace = true
+primitive-types.workspace = true
 
 [build-dependencies]
-gear-wasm-builder = { git = "https://github.com/gear-tech/gear.git", branch = "testnet", features = ["metawasm"] }
+gear-wasm-builder = { workspace = true, features = ["metawasm"] }
 
 [features]
 binary-vendor = []

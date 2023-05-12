@@ -1,19 +1,18 @@
 [package]
 name = "dex-factory"
-version = "0.1.1"
-edition = "2021"
-license = "MIT"
-authors = ["Gear Technologies"]
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+authors.workspace = true
 
 [dependencies]
-gstd = { git = "https://github.com/gear-tech/gear.git", branch = "testnet" }
-dex-factory-io = { path = "io" }
-dex-pair-io = { path = "../pair/io" }
-hashbrown = "0.13"
+gstd.workspace = true
+dex-factory-io.workspace = true
+dex-pair-io.workspace = true
 
 [build-dependencies]
-gear-wasm-builder = { git = "https://github.com/gear-tech/gear.git", branch = "testnet" }
-dex-factory-io = { path = "io" }
+gear-wasm-builder.workspace = true
+dex-factory-io.workspace = true
 
 [features]
 binary-vendor = []

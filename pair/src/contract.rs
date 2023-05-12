@@ -6,48 +6,36 @@ use dex_pair_io::{
     *,
 };
 use gear_lib::{
-    fungible_token::{
-        FTApproval, FTBurn, FTCore, FTError, FTMint, FTState, FTTransfer, FungibleToken,
-    },
-    StorageProvider,
+    tokens::fungible::FTState,
+    tx_manager::{ActionKind, Stepper, TransactionManager},
 };
 use gstd::{errors::Result as GstdResult, exec, msg, prelude::*, ActorId, MessageId};
 use primitive_types::U256;
-use tx_manager::{TransactionGuard, TransactionManager};
 
-mod tx_manager;
 mod utils;
 
 fn state_mut() -> &'static mut (Contract, TransactionManager<CachedAction>) {
-    let state = unsafe { STATE.as_mut() };
-
-    debug_assert!(state.is_some(), "state isn't initialized");
-
-    unsafe { state.unwrap_unchecked() }
+    unsafe { STATE.as_mut().expect("state isn't initialized") }
 }
 
 static mut STATE: Option<(Contract, TransactionManager<CachedAction>)> = None;
 
-#[derive(Default, StorageProvider)]
+#[derive(Default)]
 struct Contract {
     factory: ActorId,
 
     token: (ActorId, ActorId),
     reserve: (u128, u128),
     cumulative_price: (U256, U256),
-
     last_block_ts: u64,
     k_last: U256,
-
-    #[storage_field]
     ft_state: FTState,
 }
 
 impl Contract {
     async fn add_liquidity(
         &mut self,
-        tx_manager: &mut TransactionManager<CachedAction>,
-        kind: TransactionKind,
+        (tx_manager, kind): (&mut TransactionManager<CachedAction>, ActionKind),
         msg_source: ActorId,
         desired_amount: (u128, u128),
         min_amount: (u128, u128),
@@ -77,11 +65,14 @@ impl Contract {
             }
         };
 
-        let tx_guard = &mut tx_manager.asquire_transaction(
-            kind,
+        let mut tx_guard = tx_manager.asquire_transaction(
             msg_source,
-            CachedAction::AddLiquidity(amount),
+            kind.to_tx_kind(CachedAction::AddLiquidity(amount)),
         )?;
+
+        tx_guard
+            .tx_data
+            .check_tx_data(|tx_data| tx_data == &CachedAction::AddLiquidity(amount))?;
 
         let balance = if let (Some(balance_a), Some(balance_b)) = (
             self.reserve.0.checked_add(amount.0),
@@ -94,9 +85,10 @@ impl Contract {
 
         let (is_fee_on, fee_receiver, fee) = self.calculate_fee().await?;
         let U256PairTuple(amount_u256) = amount.into();
+        let program_id = exec::program_id();
 
         // Calculating liquidity
-        let (liquidity, event) = if self.ft_state.total_supply.is_zero() {
+        let (liquidity, event) = if self.ft_state.total_supply().is_zero() {
             // First minting
 
             let liquidity = (amount_u256.0 * amount_u256.1)
@@ -105,13 +97,21 @@ impl Contract {
                 .ok_or(Error::InsufficientAmount)?;
 
             let event = self
-                .update_liquidity(tx_guard, msg_source, amount, balance, liquidity)
+                .update_liquidity(
+                    &mut tx_guard.stepper,
+                    program_id,
+                    msg_source,
+                    amount,
+                    balance,
+                    liquidity,
+                )
                 .await?;
 
             // Locking the `MINIMUM_LIQUIDITY` for safer calculations during
             // further operations.
-            FTMint::mint(self, ActorId::zero(), MINIMUM_LIQUIDITY.into())
-                .expect("unchecked overflow occurred");
+            self.ft_state
+                .mint(program_id, MINIMUM_LIQUIDITY.into())
+                .expect("unchecked condition occurred for `FTState`");
 
             (liquidity, event)
         } else {
@@ -120,19 +120,16 @@ impl Contract {
             // Checking for an overflow on adding `fee` to `total_supply.`
             let total_supply = self
                 .ft_state
-                .total_supply
+                .total_supply()
                 .checked_add(fee)
                 .ok_or(Error::Overflow)?;
-
             let (Some(numerator_a), Some(numerator_b)) = (
                 amount_u256.0.checked_mul(total_supply),
                 amount_u256.1.checked_mul(total_supply),
             ) else {
                 return Err(Error::Overflow);
             };
-
             let U256PairTuple(reserve) = self.reserve.into();
-
             let liquidity = cmp::min(numerator_a / reserve.0, numerator_b / reserve.1);
 
             // Checking for an overflow on adding `liquidity` to `total_supply.`
@@ -141,11 +138,20 @@ impl Contract {
             }
 
             let event = self
-                .update_liquidity(tx_guard, msg_source, amount, balance, liquidity)
+                .update_liquidity(
+                    &mut tx_guard.stepper,
+                    program_id,
+                    msg_source,
+                    amount,
+                    balance,
+                    liquidity,
+                )
                 .await?;
 
             if !fee.is_zero() {
-                FTMint::mint(self, fee_receiver, fee).expect("unchecked overflow occurred");
+                self.ft_state
+                    .mint(fee_receiver, fee)
+                    .expect("unchecked overflow occurred for `FTState`");
             }
 
             (liquidity, event)
@@ -154,17 +160,20 @@ impl Contract {
         if is_fee_on {
             let U256PairTuple(balance) = balance.into();
 
-            self.k_last = balance.0 * balance.1
+            self.k_last = balance.0 * balance.1;
         }
 
-        FTMint::mint(self, to, liquidity).expect("unchecked overflow occurred");
+        self.ft_state
+            .mint(to, liquidity)
+            .expect("unchecked condition occurred for `FTState`");
 
         Ok(event)
     }
 
     async fn update_liquidity(
         &mut self,
-        tx_guard: &mut TransactionGuard<'_, CachedAction>,
+        stepper: &mut Stepper,
+        program_id: ActorId,
         msg_source: ActorId,
         amount: (u128, u128),
         balance: (u128, u128),
@@ -174,15 +183,12 @@ impl Contract {
             return Err(Error::InsufficientLiquidity);
         }
 
-        let program_id = exec::program_id();
-
-        utils::transfer_tokens(tx_guard, self.token.0, msg_source, program_id, amount.0).await?;
+        utils::transfer_tokens(stepper, self.token.0, msg_source, program_id, amount.0).await?;
 
         if let Err(error) =
-            utils::transfer_tokens(tx_guard, self.token.1, msg_source, program_id, amount.1).await
+            utils::transfer_tokens(stepper, self.token.1, msg_source, program_id, amount.1).await
         {
-            utils::transfer_tokens(tx_guard, self.token.0, program_id, msg_source, amount.0)
-                .await?;
+            utils::transfer_tokens(stepper, self.token.0, program_id, msg_source, amount.0).await?;
 
             Err(error)
         } else {
@@ -215,7 +221,7 @@ impl Contract {
             if root_k > root_k_last {
                 let numerator = self
                     .ft_state
-                    .total_supply
+                    .total_supply()
                     .checked_mul(root_k - root_k_last)
                     .ok_or(Error::Overflow)?;
                 // Shouldn't overflow.
@@ -230,13 +236,21 @@ impl Contract {
 
     async fn remove_liquidity(
         &mut self,
-        tx_guard: &mut TransactionGuard<'_, CachedAction>,
+        stepper: &mut Stepper,
+        is_burned: &mut bool,
         msg_source: ActorId,
         liquidity: U256,
         min_amount: (u128, u128),
         to: ActorId,
     ) -> Result<Event, Error> {
-        if FTCore::balance_of(self, msg_source) < liquidity {
+        if *is_burned {
+            self.ft_state
+                .mint(msg_source, liquidity)
+                .expect("unexpected overflow occurred for `FTState`");
+            *is_burned = false;
+        }
+
+        if self.ft_state.balance_of(msg_source) < liquidity {
             return Err(Error::InsufficientLiquidity);
         }
 
@@ -249,7 +263,7 @@ impl Contract {
             liquidity.checked_mul(reserve.1),
         ) {
             // Checking for an overflow on adding `fee` to `total_supply.`
-            if let Some(total_supply) = self.ft_state.total_supply.checked_add(fee) {
+            if let Some(total_supply) = self.ft_state.total_supply().checked_add(fee) {
                 // Shouldn't be more than u128::MAX, so casting doesn't lose
                 // data.
                 (
@@ -275,28 +289,32 @@ impl Contract {
             return Err(Error::InsufficientLatterAmount);
         }
 
-        FTBurn::burn(self, msg_source, liquidity).expect("unchecked overflow occurred");
+        self.ft_state
+            .burn(msg_source, liquidity)
+            .expect("unchecked overflow occurred for `FTState`");
+
+        *is_burned = true;
 
         let program_id = exec::program_id();
 
         // If an error occurs on the first transfer, the contract will revert
         // changes.
         if let Err(error) =
-            utils::transfer_tokens(tx_guard, self.token.0, program_id, to, amount.0).await
+            utils::transfer_tokens(stepper, self.token.0, program_id, to, amount.0).await
         {
-            FTMint::mint(self, msg_source, liquidity).expect("unchecked overflow occurred");
-
             Err(error)
         } else {
             // But not on the second one because it's impossible to cancel the
             // first one.
-            utils::transfer_tokens(tx_guard, self.token.1, program_id, to, amount.1).await?;
+            utils::transfer_tokens(stepper, self.token.1, program_id, to, amount.1).await?;
 
             let balance = (self.reserve.0 - amount.0, self.reserve.1 - amount.1);
 
             if is_fee_on {
                 if !fee.is_zero() {
-                    FTMint::mint(self, fee_receiver, fee).expect("unchecked overflow occurred");
+                    self.ft_state
+                        .mint(fee_receiver, fee)
+                        .expect("unchecked overflow occurred for `FTState`");
                 }
 
                 let U256PairTuple(balance) = balance.into();
@@ -315,29 +333,23 @@ impl Contract {
         }
     }
 
-    async fn skim(
-        &self,
-        tx_guard: &mut TransactionGuard<'_, CachedAction>,
-        to: ActorId,
-    ) -> Result<Event, Error> {
+    async fn skim(&self, stepper: &mut Stepper, to: ActorId) -> Result<Event, Error> {
         let program_id = exec::program_id();
         let contract_balance = self.balances(program_id).await?;
 
-        let excess = if let (Some(excess_a), Some(excess_b)) = (
+        let (Some(excess_a), Some(excess_b)) = (
             contract_balance.0.checked_sub(self.reserve.0),
             contract_balance.1.checked_sub(self.reserve.1),
-        ) {
-            (excess_a, excess_b)
-        } else {
+        ) else {
             return Err(Error::Overflow);
         };
 
-        utils::transfer_tokens(tx_guard, self.token.0, program_id, to, excess.0).await?;
-        utils::transfer_tokens(tx_guard, self.token.1, program_id, to, excess.1).await?;
+        utils::transfer_tokens(stepper, self.token.0, program_id, to, excess_a).await?;
+        utils::transfer_tokens(stepper, self.token.1, program_id, to, excess_b).await?;
 
         Ok(Event::Skim {
-            amount_a: excess.0,
-            amount_b: excess.1,
+            amount_a: excess_a,
+            amount_b: excess_b,
             to,
         })
     }
@@ -356,8 +368,8 @@ impl Contract {
 
     async fn balances(&self, program_id: ActorId) -> GstdResult<(u128, u128)> {
         Ok((
-            utils::balance(self.token.0, program_id).await?,
-            utils::balance(self.token.1, program_id).await?,
+            utils::balance_of(self.token.0, program_id).await?,
+            utils::balance_of(self.token.1, program_id).await?,
         ))
     }
 
@@ -401,7 +413,7 @@ impl Contract {
 
     async fn swap_exact_tokens_for_tokens(
         &mut self,
-        tx_guard: &mut TransactionGuard<'_, CachedAction>,
+        stepper: &mut Stepper,
         msg_source: ActorId,
         in_amount: u128,
         min_out_amount: u128,
@@ -418,7 +430,7 @@ impl Contract {
         }
 
         self.swap(
-            tx_guard,
+            stepper,
             msg_source,
             kind,
             (in_amount, out_amount),
@@ -438,7 +450,7 @@ impl Contract {
 
     async fn swap_tokens_for_exact_tokens(
         &mut self,
-        (tx_manager, tx_kind): (&mut TransactionManager<CachedAction>, TransactionKind),
+        (tx_manager, action_kind): (&mut TransactionManager<CachedAction>, ActionKind),
         msg_source: ActorId,
         out_amount: u128,
         max_in_amount: u128,
@@ -450,15 +462,21 @@ impl Contract {
         let swap_pattern = self.swap_pattern(swap_kind);
         let in_amount = calculate_in_amount(out_amount, swap_pattern.reserve)?;
 
-        let mut tx_guard =
-            tx_manager.asquire_transaction(tx_kind, msg_source, CachedAction::Swap(in_amount))?;
+        let mut tx_guard = tx_manager.asquire_transaction(
+            msg_source,
+            action_kind.to_tx_kind(CachedAction::Swap(in_amount)),
+        )?;
+
+        tx_guard
+            .tx_data
+            .check_tx_data(|tx_data| tx_data == &CachedAction::Swap(in_amount))?;
 
         if in_amount > max_in_amount {
             return Err(Error::InsufficientFormerAmount);
         }
 
         self.swap(
-            &mut tx_guard,
+            &mut tx_guard.stepper,
             msg_source,
             swap_kind,
             (in_amount, out_amount),
@@ -470,7 +488,7 @@ impl Contract {
 
     async fn swap(
         &mut self,
-        tx_guard: &mut TransactionGuard<'_, CachedAction>,
+        stepper: &mut Stepper,
         msg_source: ActorId,
         kind: SwapKind,
         (in_amount, out_amount): (u128, u128),
@@ -483,12 +501,12 @@ impl Contract {
     ) -> Result<Event, Error> {
         let program_id = exec::program_id();
 
-        utils::transfer_tokens(tx_guard, in_token, msg_source, program_id, in_amount).await?;
+        utils::transfer_tokens(stepper, in_token, msg_source, program_id, in_amount).await?;
 
         if let Err(error) =
-            utils::transfer_tokens(tx_guard, out_token, program_id, to, out_amount).await
+            utils::transfer_tokens(stepper, out_token, program_id, to, out_amount).await
         {
-            utils::transfer_tokens(tx_guard, in_token, program_id, msg_source, in_amount).await?;
+            utils::transfer_tokens(stepper, in_token, program_id, msg_source, in_amount).await?;
 
             return Err(error);
         }
@@ -505,16 +523,6 @@ impl Contract {
             to,
             kind,
         })
-    }
-}
-
-impl FungibleToken for Contract {
-    fn reply_transfer(&self, _transfer: FTTransfer) -> Result<(), FTError> {
-        Ok(())
-    }
-
-    fn reply_approval(&self, _approval: FTApproval) -> Result<(), FTError> {
-        Ok(())
     }
 }
 
@@ -547,8 +555,12 @@ extern "C" fn init() {
 fn process_init() -> Result<(), Error> {
     let token: (ActorId, ActorId) = msg::load()?;
 
-    if token.0.is_zero() != token.1.is_zero() {
+    if token.0.is_zero() || token.1.is_zero() {
         return Err(Error::ZeroActorId);
+    }
+
+    if token.0 == token.1 {
+        return Err(Error::IdenticalTokens);
     }
 
     unsafe {
@@ -558,7 +570,7 @@ fn process_init() -> Result<(), Error> {
                 factory: msg::source(),
                 ..Default::default()
             },
-            Default::default(),
+            TransactionManager::default(),
         ));
     };
 
@@ -575,7 +587,10 @@ async fn main() {
 }
 
 async fn process_handle() -> Result<Event, Error> {
-    let Action { action, kind } = msg::load()?;
+    let Action {
+        action,
+        kind: action_kind,
+    } = msg::load()?;
     let (contract, tx_manager) = state_mut();
     let msg_source = msg::source();
 
@@ -592,8 +607,7 @@ async fn process_handle() -> Result<Event, Error> {
 
             contract
                 .add_liquidity(
-                    tx_manager,
-                    kind,
+                    (tx_manager, action_kind),
                     msg_source,
                     (amount_a_desired, amount_b_desired),
                     (amount_a_min, amount_b_min),
@@ -609,16 +623,31 @@ async fn process_handle() -> Result<Event, Error> {
             deadline,
         } => {
             let mut tx_guard = tx_manager.asquire_transaction(
-                kind,
                 msg_source,
-                CachedAction::RemovedLiquidity(liquidity),
+                action_kind.to_tx_kind(CachedAction::RemovedLiquidity {
+                    amount: liquidity,
+                    is_burned: false,
+                }),
             )?;
+
+            let is_burned = tx_guard.tx_data.check_and_get_tx_data(|tx_data| {
+                if let CachedAction::RemovedLiquidity { amount, is_burned } = tx_data {
+                    if *amount == liquidity {
+                        Some(is_burned)
+                    } else {
+                        None
+                    }
+                } else {
+                    None
+                }
+            })?;
 
             check_deadline(deadline)?;
 
             contract
                 .remove_liquidity(
-                    &mut tx_guard,
+                    &mut tx_guard.stepper,
+                    is_burned,
                     msg_source,
                     liquidity,
                     (amount_a_min, amount_b_min),
@@ -633,14 +662,20 @@ async fn process_handle() -> Result<Event, Error> {
             deadline,
             swap_kind,
         } => {
-            let mut tx_guard =
-                tx_manager.asquire_transaction(kind, msg_source, CachedAction::Swap(amount_in))?;
+            let mut tx_guard = tx_manager.asquire_transaction(
+                msg_source,
+                action_kind.to_tx_kind(CachedAction::Swap(amount_in)),
+            )?;
+
+            tx_guard
+                .tx_data
+                .check_tx_data(|tx_data| *tx_data == CachedAction::Swap(amount_in))?;
 
             check_deadline(deadline)?;
 
             contract
                 .swap_exact_tokens_for_tokens(
-                    &mut tx_guard,
+                    &mut tx_guard.stepper,
                     msg_source,
                     amount_in,
                     amount_out_min,
@@ -660,7 +695,7 @@ async fn process_handle() -> Result<Event, Error> {
 
             contract
                 .swap_tokens_for_exact_tokens(
-                    (tx_manager, kind),
+                    (tx_manager, action_kind),
                     msg_source,
                     amount_out,
                     amount_in_max,
@@ -670,27 +705,21 @@ async fn process_handle() -> Result<Event, Error> {
                 .await
         }
         InnerAction::Skim(to) => {
-            let mut tx_guard =
-                tx_manager.asquire_transaction(kind, msg_source, CachedAction::Other)?;
+            let mut tx_guard = tx_manager
+                .asquire_transaction(msg_source, action_kind.to_tx_kind(CachedAction::Other))?;
 
-            contract.skim(&mut tx_guard, to).await
+            tx_guard
+                .tx_data
+                .check_tx_data(|tx_data| tx_data == &CachedAction::Other)?;
+
+            contract.skim(&mut tx_guard.stepper, to).await
         }
         InnerAction::Sync => contract.sync().await,
-        InnerAction::Transfer { to, amount } => {
-            if let Err(error) = FTCore::transfer(contract, to, amount) {
-                if let FTError::InsufficientAmount = error {
-                    Err(Error::InsufficientAmount)
-                } else {
-                    unreachable!()
-                }
-            } else {
-                Ok(Event::Transfer {
-                    from: msg_source,
-                    to,
-                    amount,
-                })
-            }
-        }
+        InnerAction::Transfer { to, amount } => contract
+            .ft_state
+            .transfer(to, amount)
+            .map(Into::into)
+            .map_err(Into::into),
     }
 }
 
@@ -703,10 +732,8 @@ extern "C" fn state() {
             token,
             reserve,
             cumulative_price,
-
             last_block_ts,
             k_last,
-
             ft_state,
         },
         tx_manager,
@@ -722,9 +749,12 @@ extern "C" fn state() {
         last_block_ts: *last_block_ts,
         k_last: *k_last,
 
-        ft_state: ft_state.clone(),
+        ft_state: ft_state.clone().into(),
 
-        cached_actions: tx_manager.cached_actions().map(|(k, v)| (*k, *v)).collect(),
+        cached_actions: tx_manager
+            .cached_transactions()
+            .map(|(k, v)| (*k, *v))
+            .collect(),
     })
     .expect("failed to encode or reply from `state()`");
 }

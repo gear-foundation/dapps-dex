@@ -15,7 +15,7 @@ jobs:
   build:
     runs-on: ubuntu-latest
     env:
-      GEAR_NODE_PATH: ../gear
+      GEAR_NODE_PATH: ./gear
     steps:
       - name: Checkout
         uses: actions/checkout@v3
@@ -26,25 +26,8 @@ jobs:
       - name: Remove binaries from cache
         run: rm -vfr target/wasm32-unknown-unknown/*
 
-      - name: Install the latest nightly toolchain
-        uses: actions-rs/toolchain@v1
-        with:
-          toolchain: nightly
-      - name: Install a specific toolchain
-        uses: actions-rs/toolchain@v1
-        with:
-          toolchain: nightly-2023-03-14
-          components: clippy, rustfmt
-          target: wasm32-unknown-unknown
-      - name: Spoof the latest nightly toolchain
-        run: |
-          rm -rf ~/.rustup/toolchains/nightly-x86_64-unknown-linux-gnu
-          ln -s ~/.rustup/toolchains/nightly-2023-03-14-x86_64-unknown-linux-gnu ~/.rustup/toolchains/nightly-x86_64-unknown-linux-gnu
-
-      - name: Install binaryen
-        run: |
-          wget -c https://github.com/WebAssembly/binaryen/releases/download/version_110/binaryen-version_110-x86_64-linux.tar.gz -O - | tar -xz -C .
-          sudo cp binaryen-version_110/bin/wasm-opt /usr/bin/
+      - name: Install specific nightly toolchain
+        run: make init
 
       - name: Check fmt
         run: make fmt
@@ -54,8 +37,9 @@ jobs:
 
       - name: Run tests
         run: |
-          curl -L https://get.gear.rs/gear-nightly-linux-x86_64.tar.xz -o - | tar xJ
+          curl -L https://get.gear.rs/vara-testnet-x86_64-unknown-linux-gnu.tar.xz -o - | tar xJ
           make full-test
+
       - name: Build
         run: make build
 
@@ -66,6 +50,7 @@ jobs:
           path: |
             target/wasm32-unknown-unknown/*
             */*.meta.txt
+
   upload:
     if: github.event_name == 'push'
     runs-on: ubuntu-latest
@@ -104,6 +89,7 @@ jobs:
               mv $WASM $NAME.$EXT
             fi
           done
+
       - name: Upload
         uses: softprops/action-gh-release@v1
         with:

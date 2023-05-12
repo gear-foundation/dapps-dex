@@ -1,6 +1,7 @@
 use common::{InitResult, Program, RunResult, StateReply, TransactionalProgram};
 use dex_pair_io::{hidden::U256PairTuple, *};
 use dex_pair_state::{WASM_BINARY, WASM_EXPORTS};
+use gear_lib::tokens::fungible::FTTransfer;
 use gstd::{prelude::*, ActorId};
 use gtest::Program as InnerProgram;
 use primitive_types::U256;
@@ -15,9 +16,9 @@ pub use common::initialize_system;
 pub use fungible_token::FungibleToken;
 
 pub const FOREIGN_USER: u64 = 1029384756123;
-pub const FT_MAIN: &str = "../target/ft-main.wasm";
-pub const FT_STORAGE: &str = "../target/ft-storage.wasm";
-pub const FT_LOGIC: &str = "../target/ft-logic.wasm";
+pub const FT_MAIN: &str = "../target/ft_main.wasm";
+pub const FT_STORAGE: &str = "../target/ft_storage.wasm";
+pub const FT_LOGIC: &str = "../target/ft_logic.wasm";
 pub const SPENT_BLOCKS: u32 = 1;
 
 const DEADLINE: u64 = 99999999999999999;
@@ -234,11 +235,11 @@ impl<'a> Pair<'a> {
             |event, (from, to, amount)| {
                 assert_eq!(
                     event,
-                    Event::Transfer {
+                    Event::Transfer(FTTransfer {
                         from: from.into(),
                         to: to.into(),
                         amount: amount.into(),
-                    }
+                    })
                 )
             },
         )

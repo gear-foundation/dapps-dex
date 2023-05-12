@@ -1,25 +1,24 @@
 [package]
 name = "dex-pair"
-version = "0.1.1"
-edition = "2021"
-license = "MIT"
-authors = ["Gear Technologies"]
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+authors.workspace = true
 
 [dependencies]
-gstd = { git = "https://github.com/gear-tech/gear.git", branch = "testnet" }
-dex-pair-io = { path = "io" }
-dex-factory-io = { path = "../factory/io" }
-gear-lib = { git = "https://github.com/gear-dapps/gear-lib.git", branch = "as-dev" }
-ft-main-io = { git = "https://github.com/gear-dapps/sharded-fungible-token.git", tag = "2.1.0" }
-hashbrown = "0.13"
-primitive-types = { version = "0.12", default-features = false }
+gstd.workspace = true
+dex-pair-io.workspace = true
+dex-factory-io.workspace = true
+gear-lib.workspace = true
+ft-main-io.workspace = true
+primitive-types.workspace = true
 
 [dev-dependencies]
-gtest = { git = "https://github.com/gear-tech/gear.git" }
-gclient = { git = "https://github.com/gear-tech/gear.git" }
-gear-core = { git = "https://github.com/gear-tech/gear.git" }
+gtest.workspace = true
+gclient.workspace = true
+gstd = { workspace = true, features = ["debug"] }
+gear-core = { git = "https://github.com/gear-tech/gear", rev = "5c685d0f15c412ab6ee019ceaf7ce084426dfb68" }
 subxt = { version = "0.27", default-features = false }
-gstd = { git = "https://github.com/gear-tech/gear.git", branch = "testnet", features = ["debug"] }
 pretty_assertions = "1"
 dex-factory = { path = "../factory" }
 dex-factory-state = { path = "../factory/state" }
@@ -28,8 +27,8 @@ sp-core-hashing = "6"
 tokio = "1"
 
 [build-dependencies]
-gear-wasm-builder = { git = "https://github.com/gear-tech/gear.git", branch = "testnet" }
-dex-pair-io = { path = "io" }
+gear-wasm-builder.workspace = true
+dex-pair-io.workspace = true
 
 [features]
 binary-vendor = []
