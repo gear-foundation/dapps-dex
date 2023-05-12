@@ -63,6 +63,8 @@ pub enum InnerAction {
     /// - `amount_a_desired` & `amount_b_desired` mustn't equal to 0.
     /// - On the first addition (first mint), a resulted amount of pool tokens
     /// must be more than [`MINIMUM_LIQUIDITY`].
+    ///
+    /// On success, replies with [`Event::AddedLiquidity`].
     AddLiquidity {
         /// An amount of the A tokens to add as liquidity if the B/A price is <=
         /// `amount_b_desired`/`amount_a_desired` (A depreciates).
@@ -89,6 +91,8 @@ pub enum InnerAction {
     /// # Requirements
     /// - [`msg::source()`] must have the same or a greater amount of liquidity
     /// tokens than a given one.
+    ///
+    /// On success, replies with [`Event::RemovedLiquidity`].
     RemoveLiquidity {
         /// An amount of liquidity tokens to remove.
         liquidity: Amount,
@@ -110,6 +114,8 @@ pub enum InnerAction {
     /// # Requirements
     /// - `to` mustn't equal to the contract's SFT pair.
     /// - `amount_in` mustn't equal to 0.
+    ///
+    /// On success, replies with [`Event::Swap`].
     SwapExactTokensForTokens {
         swap_kind: SwapKind,
         amount_in: u128,
@@ -128,6 +134,8 @@ pub enum InnerAction {
     /// # Requirements
     /// - `to` mustn't equal to the contract's SFT pair.
     /// - `amount_out` mustn't equal to 0.
+    ///
+    /// On success, replies with [`Event::Swap`].
     SwapTokensForExactTokens {
         swap_kind: SwapKind,
         amount_out: u128,
@@ -142,6 +150,8 @@ pub enum InnerAction {
 
     /// Syncs the contract's tokens reserve with actual contract's balances by
     /// transferring excess tokens to some [`ActorId`].
+    ///
+    /// On success, replies with [`Event::Skim`].
     Skim(
         /// A recipient of excess tokens.
         ActorId,
@@ -149,6 +159,8 @@ pub enum InnerAction {
 
     /// Syncs the contract's tokens reserve with actual contract's balances by
     /// setting the reserve equal to the balances.
+    ///
+    /// On success, replies with [`Event::Sync`].
     Sync,
 
     /// Transfers liquidity tokens from [`msg::source()`].
@@ -156,6 +168,8 @@ pub enum InnerAction {
     /// # Requirements
     /// - [`msg::source()`] must have the same or a greater amount of liquidity
     /// tokens than a given one.
+    ///
+    /// On success, replies with [`Event::Transfer`].
     Transfer { to: ActorId, amount: Amount },
 }
 
@@ -254,6 +268,7 @@ pub enum Error {
     Overflow,
     /// A specified deadline for an action was exceeded.
     DeadlineExceeded,
+    /// SFT [`ActorId`]s in a given pair to create the Pair contract are equal.
     IdenticalTokens,
     FTError(FTError),
     /// The contract failed to get fee receiver (`fee_to`) [`ActorId`] from the

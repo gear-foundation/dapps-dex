@@ -43,13 +43,13 @@ impl State {
     Default, Encode, Decode, TypeInfo, Debug, PartialEq, Eq, PartialOrd, Ord, Clone, Copy, Hash,
 )]
 pub struct Initialize {
-    /// Actor that'll receive the 0.05% commission per trade.
+    /// The actor that'll receive the 0.05% commission per trade.
     ///
     /// If it'll equal to [`ActorId::zero()`], the commission will be disabled.
     pub fee_to: ActorId,
-    /// Actor that'll have the right to set `fee_to` & `fee_to_setter`.
+    /// The actor that'll have the right to set `fee_to` & `fee_to_setter`.
     pub fee_to_setter: ActorId,
-    /// Hashcode of the Pair contract.
+    /// The identifier of the Pair contract.
     pub pair: CodeId,
 }
 
@@ -92,8 +92,7 @@ pub enum Action {
 
     /// Gets [`ActorId`] of the current fee receiver.
     ///
-    /// If it equals [`ActorId::zero()`], it means that the 0.05% commission is
-    /// disabled.
+    /// If it equals [`ActorId::zero()`], the 0.05% commission is disabled.
     ///
     /// On success, replies with [`Event::FeeToSet`].
     GetFeeTo,
@@ -135,8 +134,7 @@ pub enum Error {
     AccessRestricted,
     /// [`ActorId::zero()`] was found where it's forbidden.
     ZeroActorId,
-    /// SFT [`ActorId`]s in a given pair for creating the Pair contract are
-    /// equal.
+    /// SFT [`ActorId`]s in a given pair to create the Pair contract are equal.
     IdenticalTokens,
     /// A pair contract with given SFT [`ActorId`]s already exist.
     PairExist,
