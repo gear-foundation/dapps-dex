@@ -15,7 +15,7 @@ jobs:
   build:
     runs-on: ubuntu-latest
     env:
-      GEAR_NODE_PATH: ./gear
+      GEAR_NODE_PATH: ../gear
     steps:
       - name: Checkout
         uses: actions/checkout@v3
