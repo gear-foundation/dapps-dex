@@ -16,6 +16,7 @@ fmt:
 
 init:
 	@echo ⚙️ Installing a toolchain \& a target...
+	rustup show
 	@rustup toolchain install nightly-$(NIGHTLY_TOOLCHAIN_VERSION) -cclippy -twasm32-unknown-unknown
 	@rm -rf ~/.rustup/toolchains/nightly-$(TARGET)
 	@ln -s ~/.rustup/toolchains/nightly-$(NIGHTLY_TOOLCHAIN_VERSION)-$(TARGET) ~/.rustup/toolchains/nightly-$(TARGET)
