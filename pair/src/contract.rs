@@ -9,7 +9,7 @@ use gear_lib::{
     tokens::fungible::FTState,
     tx_manager::{ActionKind, Stepper, TransactionManager},
 };
-use gstd::{errors::ContractError, exec, msg, prelude::*, ActorId};
+use gstd::{errors::Result, exec, msg, prelude::*, ActorId};
 use primitive_types::U256;
 
 mod utils;
@@ -357,7 +357,7 @@ impl Contract {
         })
     }
 
-    async fn balances(&self, program_id: ActorId) -> Result<(u128, u128), ContractError> {
+    async fn balances(&self, program_id: ActorId) -> Result<(u128, u128)> {
         Ok((
             utils::balance_of(self.token.0, program_id).await?,
             utils::balance_of(self.token.1, program_id).await?,

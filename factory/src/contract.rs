@@ -1,6 +1,6 @@
 use dex_factory_io::*;
 use gstd::{
-    errors::ContractError, exec, msg, prelude::*, prog::ProgramGenerator, ActorId, CodeId, HashMap,
+    errors::Result, exec, msg, prelude::*, prog::ProgramGenerator, ActorId, CodeId, HashMap,
     MessageId,
 };
 
@@ -154,6 +154,6 @@ extern "C" fn metahash() {
     reply(metahash).expect("failed to encode or reply from `metahash()`");
 }
 
-fn reply(payload: impl Encode) -> Result<MessageId, ContractError> {
+fn reply(payload: impl Encode) -> Result<MessageId> {
     msg::reply(payload, 0)
 }
