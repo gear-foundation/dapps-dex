@@ -9,7 +9,7 @@ use gear_lib::{
     tokens::fungible::FTState,
     tx_manager::{ActionKind, Stepper, TransactionManager},
 };
-use gstd::{errors::Result as GstdResult, exec, msg, prelude::*, ActorId, MessageId};
+use gstd::{errors::ContractError, exec, msg, prelude::*, ActorId};
 use primitive_types::U256;
 
 mod utils;
@@ -297,40 +297,31 @@ impl Contract {
 
         let program_id = exec::program_id();
 
-        // If an error occurs on the first transfer, the contract will revert
-        // changes.
-        if let Err(error) =
-            utils::transfer_tokens(stepper, self.token.0, program_id, to, amount.0).await
-        {
-            Err(error)
-        } else {
-            // But not on the second one because it's impossible to cancel the
-            // first one.
-            utils::transfer_tokens(stepper, self.token.1, program_id, to, amount.1).await?;
+        utils::transfer_tokens(stepper, self.token.0, program_id, to, amount.0).await?;
+        utils::transfer_tokens(stepper, self.token.1, program_id, to, amount.1).await?;
 
-            let balance = (self.reserve.0 - amount.0, self.reserve.1 - amount.1);
+        let balance = (self.reserve.0 - amount.0, self.reserve.1 - amount.1);
 
-            if is_fee_on {
-                if !fee.is_zero() {
-                    self.ft_state
-                        .mint(fee_receiver, fee)
-                        .expect("unchecked overflow occurred for `FTState`");
-                }
-
-                let U256PairTuple(balance) = balance.into();
-
-                self.k_last = balance.0 * balance.1;
+        if is_fee_on {
+            if !fee.is_zero() {
+                self.ft_state
+                    .mint(fee_receiver, fee)
+                    .expect("unchecked overflow occurred for `FTState`");
             }
 
-            self.update(balance);
+            let U256PairTuple(balance) = balance.into();
 
-            Ok(Event::RemovedLiquidity {
-                sender: msg_source,
-                amount_a: amount.0,
-                amount_b: amount.1,
-                to,
-            })
+            self.k_last = balance.0 * balance.1;
         }
+
+        self.update(balance);
+
+        Ok(Event::RemovedLiquidity {
+            sender: msg_source,
+            amount_a: amount.0,
+            amount_b: amount.1,
+            to,
+        })
     }
 
     async fn skim(&self, stepper: &mut Stepper, to: ActorId) -> Result<Event, Error> {
@@ -366,7 +357,7 @@ impl Contract {
         })
     }
 
-    async fn balances(&self, program_id: ActorId) -> GstdResult<(u128, u128)> {
+    async fn balances(&self, program_id: ActorId) -> Result<(u128, u128), ContractError> {
         Ok((
             utils::balance_of(self.token.0, program_id).await?,
             utils::balance_of(self.token.1, program_id).await?,
@@ -545,7 +536,7 @@ extern "C" fn init() {
     let result = process_init();
     let is_err = result.is_err();
 
-    reply(result).expect("failed to encode or reply from `init()`");
+    msg::reply(result, 0).expect("failed to encode or reply from `init()`");
 
     if is_err {
         exec::exit(ActorId::zero());
@@ -577,13 +568,9 @@ fn process_init() -> Result<(), Error> {
     Ok(())
 }
 
-fn reply(payload: impl Encode) -> GstdResult<MessageId> {
-    msg::reply(payload, 0)
-}
-
 #[gstd::async_main]
 async fn main() {
-    reply(process_handle().await).expect("failed to encode or reply `handle()`");
+    msg::reply(process_handle().await, 0).expect("failed to encode or reply `handle()`");
 }
 
 async fn process_handle() -> Result<Event, Error> {
@@ -739,22 +726,25 @@ extern "C" fn state() {
         tx_manager,
     ) = state_mut();
 
-    reply(State {
-        factory: *factory,
+    msg::reply(
+        State {
+            factory: *factory,
 
-        token: *token,
-        reserve: *reserve,
-        cumulative_price: *cumulative_price,
+            token: *token,
+            reserve: *reserve,
+            cumulative_price: *cumulative_price,
 
-        last_block_ts: *last_block_ts,
-        k_last: *k_last,
+            last_block_ts: *last_block_ts,
+            k_last: *k_last,
 
-        ft_state: ft_state.clone().into(),
+            ft_state: ft_state.clone().into(),
 
-        cached_actions: tx_manager
-            .cached_transactions()
-            .map(|(k, v)| (*k, *v))
-            .collect(),
-    })
+            cached_actions: tx_manager
+                .cached_transactions()
+                .map(|(k, v)| (*k, *v))
+                .collect(),
+        },
+        0,
+    )
     .expect("failed to encode or reply from `state()`");
 }

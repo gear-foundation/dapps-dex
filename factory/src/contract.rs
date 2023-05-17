@@ -1,7 +1,7 @@
 use dex_factory_io::*;
 use gstd::{
-    errors::Result as GstdResult, exec, msg, prelude::*, prog::ProgramGenerator, ActorId, CodeId,
-    HashMap, MessageId,
+    errors::ContractError, exec, msg, prelude::*, prog::ProgramGenerator, ActorId, CodeId, HashMap,
+    MessageId,
 };
 
 struct Contract {
@@ -154,6 +154,6 @@ extern "C" fn metahash() {
     reply(metahash).expect("failed to encode or reply from `metahash()`");
 }
 
-fn reply(payload: impl Encode) -> GstdResult<MessageId> {
+fn reply(payload: impl Encode) -> Result<MessageId, ContractError> {
     msg::reply(payload, 0)
 }

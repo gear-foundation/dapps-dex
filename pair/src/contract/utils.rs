@@ -2,13 +2,16 @@ use dex_pair_io::*;
 use ft_main_io::{FTokenAction, FTokenEvent, LogicAction};
 use gear_lib::tx_manager::Stepper;
 use gstd::{
-    errors::Result as GstdResult,
+    errors::ContractError,
     msg::{self, CodecMessageFuture},
     prelude::*,
     ActorId,
 };
 
-pub fn send<T: Decode>(to: ActorId, payload: impl Encode) -> GstdResult<CodecMessageFuture<T>> {
+pub fn send<T: Decode>(
+    to: ActorId,
+    payload: impl Encode,
+) -> Result<CodecMessageFuture<T>, ContractError> {
     msg::send_for_reply_as(to, payload, 0)
 }
 
@@ -35,7 +38,7 @@ pub async fn transfer_tokens(
     }
 }
 
-pub async fn balance_of(token: ActorId, actor: ActorId) -> GstdResult<u128> {
+pub async fn balance_of(token: ActorId, actor: ActorId) -> Result<u128, ContractError> {
     if let FTokenEvent::Balance(balance) = send(token, FTokenAction::GetBalance(actor))?.await? {
         Ok(balance)
     } else {
