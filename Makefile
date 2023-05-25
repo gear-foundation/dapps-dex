@@ -22,25 +22,27 @@ lint:
 
 pre-commit: fmt lint full-test
 
+SFT_VERSION = 2.1.2
+
 deps:
 	@mkdir -p target
 	@echo ⚙️ Downloading dependencies...
 	@path=target/ft_main.wasm;\
 	if [ ! -f $$path ]; then\
 	    curl -L\
-	        https://github.com/gear-dapps/sharded-fungible-token/releases/download/2.1.1/ft_main.opt.wasm\
+	        https://github.com/gear-dapps/sharded-fungible-token/releases/download/$(SFT_VERSION)/ft_main.opt.wasm\
 	        -o $$path;\
 	fi
 	@path=target/ft_logic.wasm;\
 	if [ ! -f $$path ]; then\
 	    curl -L\
-	        https://github.com/gear-dapps/sharded-fungible-token/releases/download/2.1.1/ft_logic.opt.wasm\
+	        https://github.com/gear-dapps/sharded-fungible-token/releases/download/$(SFT_VERSION)/ft_logic.opt.wasm\
 	        -o $$path;\
 	fi
 	@path=target/ft_storage.wasm;\
 	if [ ! -f $$path ]; then\
 	    curl -L\
-	        https://github.com/gear-dapps/sharded-fungible-token/releases/download/2.1.1/ft_storage.opt.wasm\
+	        https://github.com/gear-dapps/sharded-fungible-token/releases/download/$(SFT_VERSION)/ft_storage.opt.wasm\
 	        -o $$path;\
 	fi
 

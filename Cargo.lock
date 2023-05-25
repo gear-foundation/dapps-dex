@@ -209,9 +209,9 @@ checksum = "9e1b586273c5702936fe7b7d6896644d8be71e6314cfe09d3167c95f712589e8"
 
 [[package]]
 name = "base64"
-version = "0.21.1"
+version = "0.21.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "3f1e31e207a6b8fb791a38ea3105e6cb541f55e4d029902d3039a4ad07cc4105"
+checksum = "604178f6c5c21f02dc555784810edfb88d34ac2c73b2eae109655649ee73ce3d"
 
 [[package]]
 name = "base64ct"
@@ -1181,7 +1181,7 @@ checksum = "0845fa252299212f0389d64ba26f34fa32cfe41588355f21ed507c59a0f64541"
 [[package]]
 name = "ft-main-io"
 version = "2.1.2"
-source = "git+https://github.com/gear-dapps/sharded-fungible-token?branch=feat/update-deps#8ee960e61874933b99b033f9a531c748bec9924e"
+source = "git+https://github.com/gear-dapps/sharded-fungible-token?tag=2.1.2#d01210c518ea294bc6b0aea0ecb1fc1ee1a7b23f"
 dependencies = [
  "gmeta",
  "gstd",
@@ -1600,7 +1600,7 @@ source = "git+https://github.com/gear-tech/gear?rev=78dfa07#78dfa07ed34df6cf76f0
 dependencies = [
  "anyhow",
  "async-recursion",
- "base64 0.21.1",
+ "base64 0.21.2",
  "futures",
  "futures-util",
  "gear-core",
@@ -2873,9 +2873,9 @@ dependencies = [
 
 [[package]]
 name = "regex"
-version = "1.8.2"
+version = "1.8.3"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "d1a59b5d8e97dee33696bf13c5ba8ab85341c002922fba050069326b9c498974"
+checksum = "81ca098a9821bd52d6b24fd8b10bd081f47d39c22778cafaa75a2857a62c6390"
 dependencies = [
  "aho-corasick",
  "memchr",
@@ -3026,7 +3026,7 @@ version = "1.0.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "d194b56d58803a43635bdc398cd17e383d6f71f9182b9a192c127ca42494a59b"
 dependencies = [
- "base64 0.21.1",
+ "base64 0.21.2",
 ]
 
 [[package]]
