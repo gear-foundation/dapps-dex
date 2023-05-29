@@ -544,7 +544,10 @@ extern "C" fn init() {
 }
 
 fn process_init() -> Result<(), Error> {
-    let token: (ActorId, ActorId) = msg::load()?;
+    let Initialize {
+        pair: token,
+        factory,
+    } = msg::load()?;
 
     if token.0.is_zero() || token.1.is_zero() {
         return Err(Error::ZeroActorId);
@@ -558,7 +561,7 @@ fn process_init() -> Result<(), Error> {
         STATE = Some((
             Contract {
                 token,
-                factory: msg::source(),
+                factory,
                 ..Default::default()
             },
             TransactionManager::default(),
