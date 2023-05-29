@@ -65,7 +65,7 @@ impl Contract {
             }
         };
 
-        let mut tx_guard = tx_manager.asquire_transaction(
+        let mut tx_guard = tx_manager.acquire_transaction(
             msg_source,
             kind.to_tx_kind(CachedAction::AddLiquidity(amount)),
         )?;
@@ -453,7 +453,7 @@ impl Contract {
         let swap_pattern = self.swap_pattern(swap_kind);
         let in_amount = calculate_in_amount(out_amount, swap_pattern.reserve)?;
 
-        let mut tx_guard = tx_manager.asquire_transaction(
+        let mut tx_guard = tx_manager.acquire_transaction(
             msg_source,
             action_kind.to_tx_kind(CachedAction::Swap(in_amount)),
         )?;
@@ -609,7 +609,7 @@ async fn process_handle() -> Result<Event, Error> {
             to,
             deadline,
         } => {
-            let mut tx_guard = tx_manager.asquire_transaction(
+            let mut tx_guard = tx_manager.acquire_transaction(
                 msg_source,
                 action_kind.to_tx_kind(CachedAction::RemovedLiquidity {
                     amount: liquidity,
@@ -649,7 +649,7 @@ async fn process_handle() -> Result<Event, Error> {
             deadline,
             swap_kind,
         } => {
-            let mut tx_guard = tx_manager.asquire_transaction(
+            let mut tx_guard = tx_manager.acquire_transaction(
                 msg_source,
                 action_kind.to_tx_kind(CachedAction::Swap(amount_in)),
             )?;
@@ -693,7 +693,7 @@ async fn process_handle() -> Result<Event, Error> {
         }
         InnerAction::Skim(to) => {
             let mut tx_guard = tx_manager
-                .asquire_transaction(msg_source, action_kind.to_tx_kind(CachedAction::Other))?;
+                .acquire_transaction(msg_source, action_kind.to_tx_kind(CachedAction::Other))?;
 
             tx_guard
                 .tx_data
