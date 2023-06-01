@@ -1,0 +1,262 @@
+wsAddress: wss://testnet.vara.rs
+
+accounts:
+  alice: //Alice
+  a1: ostrich toward surround version drift edit success seed combine core lake leaf
+  a2: cattle mask sausage critic speak index blanket alpha slogan small body forum
+  a3: sister banana sweet monster aware jeans rigid plate purpose laundry veteran bind
+  a4: unique rain venue hood whale farm fat aspect wedding floor ritual much
+  a5: jaguar neutral hire mule dial isolate dial menu candy night ticket salmon
+
+prefunded_account:
+  alice
+
+fund_accounts:
+  a1: 10000000000000
+  a2: 10000000000000
+  a3: 10000000000000
+  a4: 10000000000000
+  a5: 10000000000000
+
+programs:
+  # Due to another bug, the initialized pair in the previous script won't be
+  # listed in IDEA, so another one must be initialized manually with its address
+  # pasted here.
+  - id: 0
+    name: DEX Pair
+    path_to_meta: ../pair/dex_pair.meta.txt
+    address: "0xd4e4d1ca8fa713bd8d475cb10152ec05c8a08c30b961f8f741f5328fecd2373e"
+
+  # SFT addresses must be pasted here in the order specified in the reply from
+  # DEX Factory after an execution of the previous script.
+  - id: 1
+    name: SFT 1
+    path_to_meta: ../target/ft_main.meta.txt
+    address: "0x92574d5708fc0dfb262d5b69073cd508558f8176c12b46bb526c72e45fbc5254"
+
+  - id: 2
+    name: SFT 2
+    path_to_meta: ../target/ft_main.meta.txt
+    address: "0x7a0190a44d51f020bef2c6c3c88b26df3c55d999674c82f45b67765e11baecac"
+
+transactions:
+  # Mints for AddLiquidity
+  - type: send_message
+    program: 1
+    account: a1
+    increase_gas: 0.5
+    payload:
+      Message:
+        transaction_id: 0
+        payload:
+          Mint:
+            recipient: $account a1
+            amount: 10000
+
+  - type: send_message
+    program: 2
+    account: a1
+    increase_gas: 0.5
+    payload:
+      Message:
+        transaction_id: 0
+        payload:
+          Mint:
+            recipient: $account a1
+            amount: 10000
+
+  # Approves for AddLiquidity
+  - type: send_message
+    program: 1
+    account: a1
+    increase_gas: 0.5
+    payload:
+      Message:
+        transaction_id: 1
+        payload:
+          Approve:
+            approved_account: $program 0
+            amount: 10000
+
+  - type: send_message
+    program: 2
+    account: a1
+    increase_gas: 0.5
+    payload:
+      Message:
+        transaction_id: 1
+        payload:
+          Approve:
+            approved_account: $program 0
+            amount: 10000
+
+  # Mints for Swaps
+  - type: send_message
+    program: 1
+    account: a2
+    increase_gas: 0.5
+    payload:
+      Message:
+        transaction_id: 0
+        payload:
+          Mint:
+            recipient: $account a2
+            amount: 500
+
+  - type: send_message
+    program: 2
+    account: a3
+    increase_gas: 0.5
+    payload:
+      Message:
+        transaction_id: 0
+        payload:
+          Mint:
+            recipient: $account a3
+            amount: 500
+
+  - type: send_message
+    program: 1
+    account: a4
+    increase_gas: 0.5
+    payload:
+      Message:
+        transaction_id: 0
+        payload:
+          Mint:
+            recipient: $account a4
+            amount: 500
+
+  - type: send_message
+    program: 2
+    account: a5
+    increase_gas: 0.5
+    payload:
+      Message:
+        transaction_id: 0
+        payload:
+          Mint:
+            recipient: $account a5
+            amount: 500
+
+  # Approves for Swaps
+  - type: send_message
+    program: 1
+    account: a2
+    increase_gas: 0.5
+    payload:
+      Message:
+        transaction_id: 1
+        payload:
+          Approve:
+            approved_account: $program 0
+            amount: 500
+
+  - type: send_message
+    program: 2
+    account: a3
+    increase_gas: 0.5
+    payload:
+      Message:
+        transaction_id: 1
+        payload:
+          Approve:
+            approved_account: $program 0
+            amount: 500
+
+  - type: send_message
+    program: 1
+    account: a4
+    increase_gas: 0.5
+    payload:
+      Message:
+        transaction_id: 1
+        payload:
+          Approve:
+            approved_account: $program 0
+            amount: 500
+
+  - type: send_message
+    program: 2
+    account: a5
+    increase_gas: 0.5
+    payload:
+      Message:
+        transaction_id: 1
+        payload:
+          Approve:
+            approved_account: $program 0
+            amount: 500
+
+  # AddLiquidity
+  - type: send_message
+    program: 0
+    account: a1
+    increase_gas: 0.5
+    payload:
+      action:
+        AddLiquidity:
+          amount_a_desired: 10000
+          amount_b_desired: 10000
+          amount_a_min: 0
+          amount_b_min: 0
+          to: $account a1
+          deadline: 9007199254740991
+      kind: New
+
+  # Swaps
+  - type: send_message
+    program: 0
+    account: a2
+    increase_gas: 0.5
+    payload:
+      action:
+        SwapExactTokensForTokens:
+          swap_kind: AForB
+          amount_in: 500
+          amount_out_min: 0
+          to: $account a2
+          deadline: 9007199254740991
+      kind: New
+
+  - type: send_message
+    program: 0
+    account: a3
+    increase_gas: 0.2
+    payload:
+      action:
+        SwapExactTokensForTokens:
+          swap_kind: BForA
+          amount_in: 500
+          amount_out_min: 0
+          to: $account a3
+          deadline: 9007199254740991
+      kind: New
+
+  - type: send_message
+    program: 0
+    account: a4
+    increase_gas: 0.5
+    payload:
+      action:
+        SwapExactTokensForTokens:
+          swap_kind: AForB
+          amount_in: 500
+          amount_out_min: 0
+          to: $account a4
+          deadline: 9007199254740991
+      kind: New
+
+  - type: send_message
+    program: 0
+    account: a5
+    increase_gas: 0.5
+    payload:
+      action:
+        SwapExactTokensForTokens:
+          swap_kind: BForA
+          amount_in: 500
+          amount_out_min: 0
+          to: $account a5
+          deadline: 9007199254740991
+      kind: New

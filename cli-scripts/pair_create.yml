@@ -1,0 +1,51 @@
+wsAddress: wss://testnet.vara.rs
+
+accounts:
+  alice: //Alice
+  a1: ostrich toward surround version drift edit success seed combine core lake leaf
+
+prefunded_account:
+  alice
+
+fund_accounts:
+  a1: 1000000000
+
+programs:
+  - id: 0
+    path_to_wasm: ../target/wasm32-unknown-unknown/debug/dex_factory.opt.wasm
+    path_to_meta: ../factory/dex_factory.meta.txt
+    payload:
+      fee_to: $account a1
+      fee_to_setter: $account a1
+      pair: $program 3
+
+  # SFT contracts aren't initializing using `cli` (due to some bug), so they
+  # must initialized manually, and their address must be pasted here.
+  - id: 1
+    name: SFT 1
+    address: "0x92574d5708fc0dfb262d5b69073cd508558f8176c12b46bb526c72e45fbc5254"
+
+  - id: 2
+    name: SFT 2
+    address: "0x7a0190a44d51f020bef2c6c3c88b26df3c55d999674c82f45b67765e11baecac"
+
+  # This should be in the `codes` section that's broken.
+  - id: 3
+    name: DEX Pair
+    address: "0x634a7a2d5eaa02844c3b8e48df29a3a87d9ea47390d8eed3be0bb9bbf6d026a6"
+
+transactions:
+  - type: upload_program
+    program: 0
+    account: a1
+
+  - type: send_message
+    program: 0
+    account: a1
+    increase_gas: 0.5
+    payload:
+      CreatePair:
+        - $program 1
+        - $program 2
+  # After the message above, the order of SFT addresses (`tokenPair`) must be
+  # saved and used in the next script.

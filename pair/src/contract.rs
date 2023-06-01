@@ -1,3 +1,5 @@
+use core::num::NonZeroU32;
+
 use dex_factory_io::{Action as FactoryAction, Error as FactoryError, Event as FactoryEvent};
 use dex_pair_io::{
     hidden::{
@@ -564,7 +566,7 @@ fn process_init() -> Result<(), Error> {
                 factory,
                 ..Default::default()
             },
-            TransactionManager::default(),
+            TransactionManager::new_with_custom_limit(NonZeroU32::new(4).unwrap()).unwrap(),
         ));
     };
 

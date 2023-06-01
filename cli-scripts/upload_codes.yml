@@ -1,0 +1,43 @@
+# Saves contract codes on a chain.
+wsAddress: wss://testnet.vara.rs
+
+accounts:
+  alice: //Alice
+  a1: ostrich toward surround version drift edit success seed combine core lake leaf
+
+prefunded_account:
+  alice
+
+fund_accounts:
+  a1: 1000000000
+
+codes:
+  - id: 0
+    name: DEX Pair
+    path_to_wasm: ../target/wasm32-unknown-unknown/debug/dex_pair.opt.wasm
+
+  - id: 1
+    name: SFT Storage
+    path_to_wasm: ../target/ft_storage.wasm
+
+  - id: 2
+    name: SFT Logic
+    path_to_wasm: ../target/ft_logic.wasm
+
+# This list is unnecessary, but `cli` fails if it's missing/empty.
+programs:
+  - id: 0
+    address: "0x0000000000000000000000000000000000000000000000000000000000000000"
+
+transactions:
+  - type: upload_code
+    code: 0
+    account: a1
+
+  - type: upload_code
+    code: 1
+    account: a1
+
+  - type: upload_code
+    code: 2
+    account: a1
