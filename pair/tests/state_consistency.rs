@@ -181,11 +181,16 @@ async fn send_message_with_insufficient_gas(
 }
 
 #[tokio::test]
-#[ignore]
 async fn state_consistency() -> Result<()> {
-    let client = GearApi::dev_from_path(env!("GEAR_NODE_PATH"))
-        .await
-        .unwrap();
+    // let client = GearApi::dev_from_path(env!("GEAR_NODE_PATH"))
+    //     .await
+    //     .unwrap();
+    let client = GearApi::init_with(
+        gclient::WSAddress::new("wss://testnet.vara.rs", Some(443)),
+        "//Alice",
+    )
+    .await
+    .unwrap();
     let mut listener = client.subscribe().await?;
 
     let storage_code_hash = upload_code_by_path(&client, FT_STORAGE).await?;
