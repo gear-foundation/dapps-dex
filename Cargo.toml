@@ -14,11 +14,11 @@ license = "MIT"
 authors = ["Gear Technologies"]
 
 [workspace.dependencies]
-gear-wasm-builder = { git = "https://github.com/gear-tech/gear", rev = "946ac47" }
-gclient = { git = "https://github.com/gear-tech/gear", rev = "946ac47" }
-gtest = { git = "https://github.com/gear-tech/gear", rev = "946ac47" }
-gmeta = { git = "https://github.com/gear-tech/gear", rev = "946ac47" }
-gstd = { git = "https://github.com/gear-tech/gear", rev = "946ac47" }
+gear-wasm-builder = { git = "https://github.com/gear-tech/gear", branch = "cl/issue-2962" }
+gclient = { git = "https://github.com/gear-tech/gear", branch = "cl/issue-2962" }
+gtest = { git = "https://github.com/gear-tech/gear", branch = "cl/issue-2962" }
+gmeta = { git = "https://github.com/gear-tech/gear", branch = "cl/issue-2962" }
+gstd = { git = "https://github.com/gear-tech/gear", branch = "cl/issue-2962" }
 ft-main-io = { git = "https://github.com/gear-foundation/dapps-sharded-fungible-token", tag = "2.1.4" }
 ft-main = { git = "https://github.com/gear-foundation/dapps-sharded-fungible-token", tag = "2.1.4" }
 ft-logic = { git = "https://github.com/gear-foundation/dapps-sharded-fungible-token", tag = "2.1.4" }

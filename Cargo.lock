@@ -762,9 +762,9 @@ version = "0.2.1"
 dependencies = [
  "dex-factory-io",
  "dex-pair-io",
- "gear-wasm-builder",
- "gmeta",
- "gstd",
+ "gear-wasm-builder 0.1.2 (git+https://github.com/gear-tech/gear?branch=cl/issue-2962)",
+ "gmeta 0.2.2 (git+https://github.com/gear-tech/gear?branch=cl/issue-2962)",
+ "gstd 0.2.2 (git+https://github.com/gear-tech/gear?branch=cl/issue-2962)",
 ]
 
 [[package]]
@@ -772,8 +772,8 @@ name = "dex-factory-io"
 version = "0.2.1"
 dependencies = [
  "dex-pair-io",
- "gmeta",
- "gstd",
+ "gmeta 0.2.2 (git+https://github.com/gear-tech/gear?branch=cl/issue-2962)",
+ "gstd 0.2.2 (git+https://github.com/gear-tech/gear?branch=cl/issue-2962)",
  "parity-scale-codec",
  "scale-info",
 ]
@@ -783,9 +783,9 @@ name = "dex-factory-state"
 version = "0.2.1"
 dependencies = [
  "dex-factory-io",
- "gear-wasm-builder",
- "gmeta",
- "gstd",
+ "gear-wasm-builder 0.1.2 (git+https://github.com/gear-tech/gear?branch=cl/issue-2962)",
+ "gmeta 0.2.2 (git+https://github.com/gear-tech/gear?branch=cl/issue-2962)",
+ "gstd 0.2.2 (git+https://github.com/gear-tech/gear?branch=cl/issue-2962)",
 ]
 
 [[package]]
@@ -802,11 +802,11 @@ dependencies = [
  "ft-main-io",
  "ft-storage",
  "gclient",
- "gear-core",
+ "gear-core 0.1.0 (git+https://github.com/gear-tech/gear?rev=946ac47)",
  "gear-lib",
- "gear-wasm-builder",
- "gmeta",
- "gstd",
+ "gear-wasm-builder 0.1.2 (git+https://github.com/gear-tech/gear?branch=cl/issue-2962)",
+ "gmeta 0.2.2 (git+https://github.com/gear-tech/gear?branch=cl/issue-2962)",
+ "gstd 0.2.2 (git+https://github.com/gear-tech/gear?branch=cl/issue-2962)",
  "gtest",
  "pretty_assertions",
  "primitive-types",
@@ -819,8 +819,8 @@ name = "dex-pair-io"
 version = "0.2.1"
 dependencies = [
  "gear-lib",
- "gmeta",
- "gstd",
+ "gmeta 0.2.2 (git+https://github.com/gear-tech/gear?branch=cl/issue-2962)",
+ "gstd 0.2.2 (git+https://github.com/gear-tech/gear?branch=cl/issue-2962)",
  "parity-scale-codec",
  "primitive-types",
  "scale-info",
@@ -831,9 +831,9 @@ name = "dex-pair-state"
 version = "0.2.1"
 dependencies = [
  "dex-pair-io",
- "gear-wasm-builder",
- "gmeta",
- "gstd",
+ "gear-wasm-builder 0.1.2 (git+https://github.com/gear-tech/gear?branch=cl/issue-2962)",
+ "gmeta 0.2.2 (git+https://github.com/gear-tech/gear?branch=cl/issue-2962)",
+ "gstd 0.2.2 (git+https://github.com/gear-tech/gear?branch=cl/issue-2962)",
  "primitive-types",
 ]
 
@@ -1158,7 +1158,7 @@ dependencies = [
 [[package]]
 name = "frame-support"
 version = "4.0.0-dev"
-source = "git+https://github.com/gear-tech/substrate.git?branch=gear-polkadot-v0.9.41-canary#b9a153b1b1d8ba11bc54aebb3732d1930dcba0c8"
+source = "git+https://github.com/gear-tech/substrate.git?branch=gear-polkadot-v0.9.41-canary-no-sandbox#93aa762a96970dc7d5987a8c890a6be4912f3cd3"
 dependencies = [
  "bitflags 1.3.2",
  "environmental",
@@ -1174,24 +1174,24 @@ dependencies = [
  "serde",
  "smallvec",
  "sp-api",
- "sp-arithmetic",
- "sp-core",
+ "sp-arithmetic 6.0.0 (git+https://github.com/gear-tech/substrate.git?branch=gear-polkadot-v0.9.41-canary-no-sandbox)",
+ "sp-core 7.0.0 (git+https://github.com/gear-tech/substrate.git?branch=gear-polkadot-v0.9.41-canary-no-sandbox)",
  "sp-core-hashing-proc-macro",
  "sp-inherents",
- "sp-io",
- "sp-runtime",
+ "sp-io 7.0.0 (git+https://github.com/gear-tech/substrate.git?branch=gear-polkadot-v0.9.41-canary-no-sandbox)",
+ "sp-runtime 7.0.0 (git+https://github.com/gear-tech/substrate.git?branch=gear-polkadot-v0.9.41-canary-no-sandbox)",
  "sp-staking",
- "sp-state-machine",
- "sp-std 5.0.0",
- "sp-tracing",
- "sp-weights",
+ "sp-state-machine 0.13.0 (git+https://github.com/gear-tech/substrate.git?branch=gear-polkadot-v0.9.41-canary-no-sandbox)",
+ "sp-std 5.0.0 (git+https://github.com/gear-tech/substrate.git?branch=gear-polkadot-v0.9.41-canary-no-sandbox)",
+ "sp-tracing 6.0.0 (git+https://github.com/gear-tech/substrate.git?branch=gear-polkadot-v0.9.41-canary-no-sandbox)",
+ "sp-weights 4.0.0 (git+https://github.com/gear-tech/substrate.git?branch=gear-polkadot-v0.9.41-canary-no-sandbox)",
  "tt-call",
 ]
 
 [[package]]
 name = "frame-support-procedural"
 version = "4.0.0-dev"
-source = "git+https://github.com/gear-tech/substrate.git?branch=gear-polkadot-v0.9.41-canary#b9a153b1b1d8ba11bc54aebb3732d1930dcba0c8"
+source = "git+https://github.com/gear-tech/substrate.git?branch=gear-polkadot-v0.9.41-canary-no-sandbox#93aa762a96970dc7d5987a8c890a6be4912f3cd3"
 dependencies = [
  "Inflector",
  "cfg-expr",
@@ -1206,7 +1206,7 @@ dependencies = [
 [[package]]
 name = "frame-support-procedural-tools"
 version = "4.0.0-dev"
-source = "git+https://github.com/gear-tech/substrate.git?branch=gear-polkadot-v0.9.41-canary#b9a153b1b1d8ba11bc54aebb3732d1930dcba0c8"
+source = "git+https://github.com/gear-tech/substrate.git?branch=gear-polkadot-v0.9.41-canary-no-sandbox#93aa762a96970dc7d5987a8c890a6be4912f3cd3"
 dependencies = [
  "frame-support-procedural-tools-derive",
  "proc-macro-crate",
@@ -1218,7 +1218,7 @@ dependencies = [
 [[package]]
 name = "frame-support-procedural-tools-derive"
 version = "3.0.0"
-source = "git+https://github.com/gear-tech/substrate.git?branch=gear-polkadot-v0.9.41-canary#b9a153b1b1d8ba11bc54aebb3732d1930dcba0c8"
+source = "git+https://github.com/gear-tech/substrate.git?branch=gear-polkadot-v0.9.41-canary-no-sandbox#93aa762a96970dc7d5987a8c890a6be4912f3cd3"
 dependencies = [
  "proc-macro2",
  "quote",
@@ -1239,9 +1239,9 @@ dependencies = [
  "ft-logic-io",
  "ft-main-io",
  "ft-storage-io",
- "gear-wasm-builder",
- "gmeta",
- "gstd",
+ "gear-wasm-builder 0.1.2 (git+https://github.com/gear-tech/gear?rev=946ac47)",
+ "gmeta 0.2.2 (git+https://github.com/gear-tech/gear?rev=946ac47)",
+ "gstd 0.2.2 (git+https://github.com/gear-tech/gear?rev=946ac47)",
  "hashbrown 0.14.0",
  "hex",
  "light_sr25519",
@@ -1257,8 +1257,8 @@ source = "git+https://github.com/gear-foundation/dapps-sharded-fungible-token?ta
 dependencies = [
  "ft-main-io",
  "ft-storage-io",
- "gmeta",
- "gstd",
+ "gmeta 0.2.2 (git+https://github.com/gear-tech/gear?rev=946ac47)",
+ "gstd 0.2.2 (git+https://github.com/gear-tech/gear?rev=946ac47)",
  "hashbrown 0.14.0",
  "parity-scale-codec",
  "primitive-types",
@@ -1273,9 +1273,9 @@ dependencies = [
  "ft-logic-io",
  "ft-main-io",
  "ft-storage-io",
- "gear-wasm-builder",
- "gmeta",
- "gstd",
+ "gear-wasm-builder 0.1.2 (git+https://github.com/gear-tech/gear?rev=946ac47)",
+ "gmeta 0.2.2 (git+https://github.com/gear-tech/gear?rev=946ac47)",
+ "gstd 0.2.2 (git+https://github.com/gear-tech/gear?rev=946ac47)",
  "hashbrown 0.14.0",
  "primitive-types",
  "sp-core-hashing 8.0.0",
@@ -1286,8 +1286,8 @@ name = "ft-main-io"
 version = "2.1.4"
 source = "git+https://github.com/gear-foundation/dapps-sharded-fungible-token?tag=2.1.4#48ca7b3bb12becfa07da1dafbb266194135e388d"
 dependencies = [
- "gmeta",
- "gstd",
+ "gmeta 0.2.2 (git+https://github.com/gear-tech/gear?rev=946ac47)",
+ "gstd 0.2.2 (git+https://github.com/gear-tech/gear?rev=946ac47)",
  "parity-scale-codec",
  "primitive-types",
  "scale-info",
@@ -1299,9 +1299,9 @@ version = "2.1.4"
 source = "git+https://github.com/gear-foundation/dapps-sharded-fungible-token?tag=2.1.4#48ca7b3bb12becfa07da1dafbb266194135e388d"
 dependencies = [
  "ft-storage-io",
- "gear-wasm-builder",
- "gmeta",
- "gstd",
+ "gear-wasm-builder 0.1.2 (git+https://github.com/gear-tech/gear?rev=946ac47)",
+ "gmeta 0.2.2 (git+https://github.com/gear-tech/gear?rev=946ac47)",
+ "gstd 0.2.2 (git+https://github.com/gear-tech/gear?rev=946ac47)",
  "hashbrown 0.14.0",
  "primitive-types",
 ]
@@ -1311,8 +1311,8 @@ name = "ft-storage-io"
 version = "2.1.2"
 source = "git+https://github.com/gear-foundation/dapps-sharded-fungible-token?tag=2.1.4#48ca7b3bb12becfa07da1dafbb266194135e388d"
 dependencies = [
- "gmeta",
- "gstd",
+ "gmeta 0.2.2 (git+https://github.com/gear-tech/gear?rev=946ac47)",
+ "gstd 0.2.2 (git+https://github.com/gear-tech/gear?rev=946ac47)",
  "parity-scale-codec",
  "primitive-types",
  "scale-info",
@@ -1423,6 +1423,14 @@ dependencies = [
 [[package]]
 name = "galloc"
 version = "0.2.2"
+source = "git+https://github.com/gear-tech/gear?branch=cl/issue-2962#e0827615f86f5ceb957502f587e76af1df8f8988"
+dependencies = [
+ "dlmalloc",
+]
+
+[[package]]
+name = "galloc"
+version = "0.2.2"
 source = "git+https://github.com/gear-tech/gear?rev=946ac47#946ac47439c624dd002e3111dfff73d0c7aabbb9"
 dependencies = [
  "dlmalloc",
@@ -1431,18 +1439,18 @@ dependencies = [
 [[package]]
 name = "gclient"
 version = "0.1.0"
-source = "git+https://github.com/gear-tech/gear?rev=946ac47#946ac47439c624dd002e3111dfff73d0c7aabbb9"
+source = "git+https://github.com/gear-tech/gear?branch=cl/issue-2962#e0827615f86f5ceb957502f587e76af1df8f8988"
 dependencies = [
  "anyhow",
  "async-trait",
  "futures",
  "futures-timer",
  "gear-common",
- "gear-core",
- "gear-core-errors",
+ "gear-core 0.1.0 (git+https://github.com/gear-tech/gear?branch=cl/issue-2962)",
+ "gear-core-errors 0.1.0 (git+https://github.com/gear-tech/gear?branch=cl/issue-2962)",
  "gear-utils",
  "gsdk",
- "gstd",
+ "gstd 0.2.2 (git+https://github.com/gear-tech/gear?branch=cl/issue-2962)",
  "hex",
  "parity-scale-codec",
  "rand 0.8.5",
@@ -1456,10 +1464,21 @@ dependencies = [
 [[package]]
 name = "gcore"
 version = "0.2.2"
+source = "git+https://github.com/gear-tech/gear?branch=cl/issue-2962#e0827615f86f5ceb957502f587e76af1df8f8988"
+dependencies = [
+ "gear-core-errors 0.1.0 (git+https://github.com/gear-tech/gear?branch=cl/issue-2962)",
+ "gsys 0.2.2 (git+https://github.com/gear-tech/gear?branch=cl/issue-2962)",
+ "parity-scale-codec",
+ "static_assertions",
+]
+
+[[package]]
+name = "gcore"
+version = "0.2.2"
 source = "git+https://github.com/gear-tech/gear?rev=946ac47#946ac47439c624dd002e3111dfff73d0c7aabbb9"
 dependencies = [
- "gear-core-errors",
- "gsys",
+ "gear-core-errors 0.1.0 (git+https://github.com/gear-tech/gear?rev=946ac47)",
+ "gsys 0.2.2 (git+https://github.com/gear-tech/gear?rev=946ac47)",
  "parity-scale-codec",
  "static_assertions",
 ]
@@ -1467,7 +1486,7 @@ dependencies = [
 [[package]]
 name = "gear-backend-codegen"
 version = "0.1.0"
-source = "git+https://github.com/gear-tech/gear?rev=946ac47#946ac47439c624dd002e3111dfff73d0c7aabbb9"
+source = "git+https://github.com/gear-tech/gear?branch=cl/issue-2962#e0827615f86f5ceb957502f587e76af1df8f8988"
 dependencies = [
  "proc-macro2",
  "quote",
@@ -1477,15 +1496,15 @@ dependencies = [
 [[package]]
 name = "gear-backend-common"
 version = "0.1.0"
-source = "git+https://github.com/gear-tech/gear?rev=946ac47#946ac47439c624dd002e3111dfff73d0c7aabbb9"
+source = "git+https://github.com/gear-tech/gear?branch=cl/issue-2962#e0827615f86f5ceb957502f587e76af1df8f8988"
 dependencies = [
  "blake2-rfc",
  "derive_more",
  "gear-backend-codegen",
- "gear-core",
- "gear-core-errors",
- "gear-wasm-instrument",
- "gsys",
+ "gear-core 0.1.0 (git+https://github.com/gear-tech/gear?branch=cl/issue-2962)",
+ "gear-core-errors 0.1.0 (git+https://github.com/gear-tech/gear?branch=cl/issue-2962)",
+ "gear-wasm-instrument 0.1.0 (git+https://github.com/gear-tech/gear?branch=cl/issue-2962)",
+ "gsys 0.2.2 (git+https://github.com/gear-tech/gear?branch=cl/issue-2962)",
  "log",
  "parity-scale-codec",
  "scale-info",
@@ -1494,13 +1513,13 @@ dependencies = [
 [[package]]
 name = "gear-backend-wasmi"
 version = "0.1.0"
-source = "git+https://github.com/gear-tech/gear?rev=946ac47#946ac47439c624dd002e3111dfff73d0c7aabbb9"
+source = "git+https://github.com/gear-tech/gear?branch=cl/issue-2962#e0827615f86f5ceb957502f587e76af1df8f8988"
 dependencies = [
  "derive_more",
  "gear-backend-common",
- "gear-core",
- "gear-core-errors",
- "gear-wasm-instrument",
+ "gear-core 0.1.0 (git+https://github.com/gear-tech/gear?branch=cl/issue-2962)",
+ "gear-core-errors 0.1.0 (git+https://github.com/gear-tech/gear?branch=cl/issue-2962)",
+ "gear-wasm-instrument 0.1.0 (git+https://github.com/gear-tech/gear?branch=cl/issue-2962)",
  "log",
  "parity-scale-codec",
  "wasmi 0.14.0",
@@ -1509,33 +1528,52 @@ dependencies = [
 [[package]]
 name = "gear-common"
 version = "0.1.0"
-source = "git+https://github.com/gear-tech/gear?rev=946ac47#946ac47439c624dd002e3111dfff73d0c7aabbb9"
+source = "git+https://github.com/gear-tech/gear?branch=cl/issue-2962#e0827615f86f5ceb957502f587e76af1df8f8988"
 dependencies = [
  "derive_more",
  "enum-iterator",
  "frame-support",
  "gear-common-codegen",
- "gear-core",
- "gear-wasm-instrument",
+ "gear-core 0.1.0 (git+https://github.com/gear-tech/gear?branch=cl/issue-2962)",
+ "gear-wasm-instrument 0.1.0 (git+https://github.com/gear-tech/gear?branch=cl/issue-2962)",
  "hex",
  "log",
  "path-clean",
  "primitive-types",
  "serde",
  "serde_json",
- "sp-arithmetic",
- "sp-core",
- "sp-io",
- "sp-std 5.0.0",
+ "sp-arithmetic 6.0.0 (git+https://github.com/gear-tech/substrate.git?branch=gear-polkadot-v0.9.41-canary-no-sandbox)",
+ "sp-core 7.0.0 (git+https://github.com/gear-tech/substrate.git?branch=gear-polkadot-v0.9.41-canary-no-sandbox)",
+ "sp-io 7.0.0 (git+https://github.com/gear-tech/substrate.git?branch=gear-polkadot-v0.9.41-canary-no-sandbox)",
+ "sp-std 5.0.0 (git+https://github.com/gear-tech/substrate.git?branch=gear-polkadot-v0.9.41-canary-no-sandbox)",
 ]
 
 [[package]]
 name = "gear-common-codegen"
 version = "0.1.0"
-source = "git+https://github.com/gear-tech/gear?rev=946ac47#946ac47439c624dd002e3111dfff73d0c7aabbb9"
+source = "git+https://github.com/gear-tech/gear?branch=cl/issue-2962#e0827615f86f5ceb957502f587e76af1df8f8988"
 dependencies = [
  "quote",
  "syn 2.0.25",
+]
+
+[[package]]
+name = "gear-core"
+version = "0.1.0"
+source = "git+https://github.com/gear-tech/gear?branch=cl/issue-2962#e0827615f86f5ceb957502f587e76af1df8f8988"
+dependencies = [
+ "blake2-rfc",
+ "derive_more",
+ "gear-core-errors 0.1.0 (git+https://github.com/gear-tech/gear?branch=cl/issue-2962)",
+ "gear-wasm-instrument 0.1.0 (git+https://github.com/gear-tech/gear?branch=cl/issue-2962)",
+ "hashbrown 0.13.2",
+ "hex",
+ "log",
+ "parity-scale-codec",
+ "paste",
+ "scale-info",
+ "static_assertions",
+ "wasmparser-nostd 0.100.1",
 ]
 
 [[package]]
@@ -1545,8 +1583,8 @@ source = "git+https://github.com/gear-tech/gear?rev=946ac47#946ac47439c624dd002e
 dependencies = [
  "blake2-rfc",
  "derive_more",
- "gear-core-errors",
- "gear-wasm-instrument",
+ "gear-core-errors 0.1.0 (git+https://github.com/gear-tech/gear?rev=946ac47)",
+ "gear-wasm-instrument 0.1.0 (git+https://github.com/gear-tech/gear?rev=946ac47)",
  "hashbrown 0.13.2",
  "hex",
  "log",
@@ -1555,6 +1593,16 @@ dependencies = [
  "scale-info",
  "static_assertions",
  "wasmparser-nostd 0.100.1",
+]
+
+[[package]]
+name = "gear-core-errors"
+version = "0.1.0"
+source = "git+https://github.com/gear-tech/gear?branch=cl/issue-2962#e0827615f86f5ceb957502f587e76af1df8f8988"
+dependencies = [
+ "derive_more",
+ "enum-iterator",
+ "scale-info",
 ]
 
 [[package]]
@@ -1570,13 +1618,13 @@ dependencies = [
 [[package]]
 name = "gear-core-processor"
 version = "0.1.0"
-source = "git+https://github.com/gear-tech/gear?rev=946ac47#946ac47439c624dd002e3111dfff73d0c7aabbb9"
+source = "git+https://github.com/gear-tech/gear?branch=cl/issue-2962#e0827615f86f5ceb957502f587e76af1df8f8988"
 dependencies = [
  "derive_more",
  "gear-backend-common",
- "gear-core",
- "gear-core-errors",
- "gear-wasm-instrument",
+ "gear-core 0.1.0 (git+https://github.com/gear-tech/gear?branch=cl/issue-2962)",
+ "gear-core-errors 0.1.0 (git+https://github.com/gear-tech/gear?branch=cl/issue-2962)",
+ "gear-wasm-instrument 0.1.0 (git+https://github.com/gear-tech/gear?branch=cl/issue-2962)",
  "log",
  "scale-info",
  "static_assertions",
@@ -1588,7 +1636,7 @@ version = "0.4.1"
 source = "git+https://github.com/gear-foundation/dapps-gear-lib?branch=as-dev-dev#0abcc2f328b53ad45f33eda8c5c29163ca465235"
 dependencies = [
  "ahash 0.8.3",
- "gstd",
+ "gstd 0.2.2 (git+https://github.com/gear-tech/gear?rev=946ac47)",
  "hashbrown 0.13.2",
  "indexmap 2.0.0-pre",
  "parity-scale-codec",
@@ -1599,16 +1647,40 @@ dependencies = [
 [[package]]
 name = "gear-utils"
 version = "0.1.0"
-source = "git+https://github.com/gear-tech/gear?rev=946ac47#946ac47439c624dd002e3111dfff73d0c7aabbb9"
+source = "git+https://github.com/gear-tech/gear?branch=cl/issue-2962#e0827615f86f5ceb957502f587e76af1df8f8988"
 dependencies = [
  "env_logger",
- "gear-core",
+ "gear-core 0.1.0 (git+https://github.com/gear-tech/gear?branch=cl/issue-2962)",
  "hex",
  "nonempty",
  "parity-scale-codec",
  "path-clean",
  "serde",
  "serde_json",
+]
+
+[[package]]
+name = "gear-wasm-builder"
+version = "0.1.2"
+source = "git+https://github.com/gear-tech/gear?branch=cl/issue-2962#e0827615f86f5ceb957502f587e76af1df8f8988"
+dependencies = [
+ "anyhow",
+ "cargo_metadata",
+ "chrono",
+ "colored",
+ "dirs",
+ "gear-core 0.1.0 (git+https://github.com/gear-tech/gear?branch=cl/issue-2962)",
+ "gear-wasm-instrument 0.1.0 (git+https://github.com/gear-tech/gear?branch=cl/issue-2962)",
+ "gmeta 0.2.2 (git+https://github.com/gear-tech/gear?branch=cl/issue-2962)",
+ "log",
+ "once_cell",
+ "pathdiff",
+ "pwasm-utils",
+ "regex",
+ "thiserror",
+ "toml",
+ "wasmparser-nostd 0.100.1",
+ "which",
 ]
 
 [[package]]
@@ -1621,9 +1693,9 @@ dependencies = [
  "chrono",
  "colored",
  "dirs",
- "gear-core",
- "gear-wasm-instrument",
- "gmeta",
+ "gear-core 0.1.0 (git+https://github.com/gear-tech/gear?rev=946ac47)",
+ "gear-wasm-instrument 0.1.0 (git+https://github.com/gear-tech/gear?rev=946ac47)",
+ "gmeta 0.2.2 (git+https://github.com/gear-tech/gear?rev=946ac47)",
  "log",
  "once_cell",
  "pathdiff",
@@ -1633,6 +1705,15 @@ dependencies = [
  "toml",
  "wasmparser-nostd 0.100.1",
  "which",
+]
+
+[[package]]
+name = "gear-wasm-instrument"
+version = "0.1.0"
+source = "git+https://github.com/gear-tech/gear?branch=cl/issue-2962#e0827615f86f5ceb957502f587e76af1df8f8988"
+dependencies = [
+ "enum-iterator",
+ "wasm-instrument",
 ]
 
 [[package]]
@@ -1712,7 +1793,7 @@ checksum = "8be18de09a56b60ed0edf84bc9df007e30040691af7acd1c41874faac5895bfb"
 [[package]]
 name = "gmeta"
 version = "0.2.2"
-source = "git+https://github.com/gear-tech/gear?rev=946ac47#946ac47439c624dd002e3111dfff73d0c7aabbb9"
+source = "git+https://github.com/gear-tech/gear?branch=cl/issue-2962#e0827615f86f5ceb957502f587e76af1df8f8988"
 dependencies = [
  "blake2-rfc",
  "derive_more",
@@ -1722,9 +1803,20 @@ dependencies = [
 ]
 
 [[package]]
+name = "gmeta"
+version = "0.2.2"
+source = "git+https://github.com/gear-tech/gear?rev=946ac47#946ac47439c624dd002e3111dfff73d0c7aabbb9"
+dependencies = [
+ "blake2-rfc",
+ "derive_more",
+ "hex",
+ "scale-info",
+]
+
+[[package]]
 name = "gmeta-codegen"
 version = "0.1.0"
-source = "git+https://github.com/gear-tech/gear?rev=946ac47#946ac47439c624dd002e3111dfff73d0c7aabbb9"
+source = "git+https://github.com/gear-tech/gear?branch=cl/issue-2962#e0827615f86f5ceb957502f587e76af1df8f8988"
 dependencies = [
  "proc-macro2",
  "quote",
@@ -1745,14 +1837,14 @@ dependencies = [
 [[package]]
 name = "gsdk"
 version = "0.1.0"
-source = "git+https://github.com/gear-tech/gear?rev=946ac47#946ac47439c624dd002e3111dfff73d0c7aabbb9"
+source = "git+https://github.com/gear-tech/gear?branch=cl/issue-2962#e0827615f86f5ceb957502f587e76af1df8f8988"
 dependencies = [
  "anyhow",
  "base64 0.21.2",
  "futures",
  "futures-util",
- "gear-core",
- "gear-core-errors",
+ "gear-core 0.1.0 (git+https://github.com/gear-tech/gear?branch=cl/issue-2962)",
+ "gear-core-errors 0.1.0 (git+https://github.com/gear-tech/gear?branch=cl/issue-2962)",
  "gsdk-codegen",
  "hex",
  "jsonrpsee",
@@ -1760,10 +1852,11 @@ dependencies = [
  "parity-scale-codec",
  "rand 0.8.5",
  "scale-decode",
+ "scale-value",
  "serde",
  "serde_json",
- "sp-core",
- "sp-runtime",
+ "sp-core 7.0.0 (git+https://github.com/gear-tech/substrate.git?branch=gear-polkadot-v0.9.41-canary-no-sandbox)",
+ "sp-runtime 7.0.0 (git+https://github.com/gear-tech/substrate.git?branch=gear-polkadot-v0.9.41-canary-no-sandbox)",
  "subxt",
  "thiserror",
 ]
@@ -1771,7 +1864,7 @@ dependencies = [
 [[package]]
 name = "gsdk-codegen"
 version = "0.1.0"
-source = "git+https://github.com/gear-tech/gear?rev=946ac47#946ac47439c624dd002e3111dfff73d0c7aabbb9"
+source = "git+https://github.com/gear-tech/gear?branch=cl/issue-2962#e0827615f86f5ceb957502f587e76af1df8f8988"
 dependencies = [
  "proc-macro2",
  "quote",
@@ -1781,20 +1874,49 @@ dependencies = [
 [[package]]
 name = "gstd"
 version = "0.2.2"
-source = "git+https://github.com/gear-tech/gear?rev=946ac47#946ac47439c624dd002e3111dfff73d0c7aabbb9"
+source = "git+https://github.com/gear-tech/gear?branch=cl/issue-2962#e0827615f86f5ceb957502f587e76af1df8f8988"
 dependencies = [
  "bs58",
  "futures",
- "galloc",
- "gcore",
- "gear-core-errors",
- "gstd-codegen",
+ "galloc 0.2.2 (git+https://github.com/gear-tech/gear?branch=cl/issue-2962)",
+ "gcore 0.2.2 (git+https://github.com/gear-tech/gear?branch=cl/issue-2962)",
+ "gear-core-errors 0.1.0 (git+https://github.com/gear-tech/gear?branch=cl/issue-2962)",
+ "gstd-codegen 0.1.0 (git+https://github.com/gear-tech/gear?branch=cl/issue-2962)",
  "hashbrown 0.13.2",
  "hex",
  "parity-scale-codec",
  "primitive-types",
  "scale-info",
  "static_assertions",
+]
+
+[[package]]
+name = "gstd"
+version = "0.2.2"
+source = "git+https://github.com/gear-tech/gear?rev=946ac47#946ac47439c624dd002e3111dfff73d0c7aabbb9"
+dependencies = [
+ "bs58",
+ "futures",
+ "galloc 0.2.2 (git+https://github.com/gear-tech/gear?rev=946ac47)",
+ "gcore 0.2.2 (git+https://github.com/gear-tech/gear?rev=946ac47)",
+ "gear-core-errors 0.1.0 (git+https://github.com/gear-tech/gear?rev=946ac47)",
+ "gstd-codegen 0.1.0 (git+https://github.com/gear-tech/gear?rev=946ac47)",
+ "hashbrown 0.13.2",
+ "hex",
+ "parity-scale-codec",
+ "primitive-types",
+ "scale-info",
+ "static_assertions",
+]
+
+[[package]]
+name = "gstd-codegen"
+version = "0.1.0"
+source = "git+https://github.com/gear-tech/gear?branch=cl/issue-2962#e0827615f86f5ceb957502f587e76af1df8f8988"
+dependencies = [
+ "proc-macro2",
+ "quote",
+ "syn 2.0.25",
 ]
 
 [[package]]
@@ -1810,12 +1932,17 @@ dependencies = [
 [[package]]
 name = "gsys"
 version = "0.2.2"
+source = "git+https://github.com/gear-tech/gear?branch=cl/issue-2962#e0827615f86f5ceb957502f587e76af1df8f8988"
+
+[[package]]
+name = "gsys"
+version = "0.2.2"
 source = "git+https://github.com/gear-tech/gear?rev=946ac47#946ac47439c624dd002e3111dfff73d0c7aabbb9"
 
 [[package]]
 name = "gtest"
 version = "0.1.0"
-source = "git+https://github.com/gear-tech/gear?rev=946ac47#946ac47439c624dd002e3111dfff73d0c7aabbb9"
+source = "git+https://github.com/gear-tech/gear?branch=cl/issue-2962#e0827615f86f5ceb957502f587e76af1df8f8988"
 dependencies = [
  "anyhow",
  "colored",
@@ -1823,12 +1950,12 @@ dependencies = [
  "env_logger",
  "gear-backend-common",
  "gear-backend-wasmi",
- "gear-core",
- "gear-core-errors",
+ "gear-core 0.1.0 (git+https://github.com/gear-tech/gear?branch=cl/issue-2962)",
+ "gear-core-errors 0.1.0 (git+https://github.com/gear-tech/gear?branch=cl/issue-2962)",
  "gear-core-processor",
  "gear-utils",
- "gear-wasm-builder",
- "gear-wasm-instrument",
+ "gear-wasm-builder 0.1.2 (git+https://github.com/gear-tech/gear?branch=cl/issue-2962)",
+ "gear-wasm-instrument 0.1.0 (git+https://github.com/gear-tech/gear?branch=cl/issue-2962)",
  "hex",
  "log",
  "parity-scale-codec",
@@ -3657,19 +3784,30 @@ dependencies = [
 ]
 
 [[package]]
+name = "sp-allocator"
+version = "4.1.0-dev"
+source = "git+https://github.com/gear-tech/substrate.git?branch=gear-polkadot-v0.9.41-canary-no-sandbox#93aa762a96970dc7d5987a8c890a6be4912f3cd3"
+dependencies = [
+ "log",
+ "parity-scale-codec",
+ "sp-wasm-interface-common",
+ "thiserror",
+]
+
+[[package]]
 name = "sp-api"
 version = "4.0.0-dev"
-source = "git+https://github.com/gear-tech/substrate.git?branch=gear-polkadot-v0.9.41-canary#b9a153b1b1d8ba11bc54aebb3732d1930dcba0c8"
+source = "git+https://github.com/gear-tech/substrate.git?branch=gear-polkadot-v0.9.41-canary-no-sandbox#93aa762a96970dc7d5987a8c890a6be4912f3cd3"
 dependencies = [
  "hash-db",
  "log",
  "parity-scale-codec",
  "sp-api-proc-macro",
- "sp-core",
- "sp-runtime",
- "sp-state-machine",
- "sp-std 5.0.0",
- "sp-trie",
+ "sp-core 7.0.0 (git+https://github.com/gear-tech/substrate.git?branch=gear-polkadot-v0.9.41-canary-no-sandbox)",
+ "sp-runtime 7.0.0 (git+https://github.com/gear-tech/substrate.git?branch=gear-polkadot-v0.9.41-canary-no-sandbox)",
+ "sp-state-machine 0.13.0 (git+https://github.com/gear-tech/substrate.git?branch=gear-polkadot-v0.9.41-canary-no-sandbox)",
+ "sp-std 5.0.0 (git+https://github.com/gear-tech/substrate.git?branch=gear-polkadot-v0.9.41-canary-no-sandbox)",
+ "sp-trie 7.0.0 (git+https://github.com/gear-tech/substrate.git?branch=gear-polkadot-v0.9.41-canary-no-sandbox)",
  "sp-version",
  "thiserror",
 ]
@@ -3677,7 +3815,7 @@ dependencies = [
 [[package]]
 name = "sp-api-proc-macro"
 version = "4.0.0-dev"
-source = "git+https://github.com/gear-tech/substrate.git?branch=gear-polkadot-v0.9.41-canary#b9a153b1b1d8ba11bc54aebb3732d1930dcba0c8"
+source = "git+https://github.com/gear-tech/substrate.git?branch=gear-polkadot-v0.9.41-canary-no-sandbox#93aa762a96970dc7d5987a8c890a6be4912f3cd3"
 dependencies = [
  "Inflector",
  "blake2",
@@ -3696,9 +3834,22 @@ dependencies = [
  "parity-scale-codec",
  "scale-info",
  "serde",
- "sp-core",
- "sp-io",
- "sp-std 5.0.0",
+ "sp-core 7.0.0 (git+https://github.com/gear-tech/substrate.git?branch=gear-polkadot-v0.9.41-canary)",
+ "sp-io 7.0.0 (git+https://github.com/gear-tech/substrate.git?branch=gear-polkadot-v0.9.41-canary)",
+ "sp-std 5.0.0 (git+https://github.com/gear-tech/substrate.git?branch=gear-polkadot-v0.9.41-canary)",
+]
+
+[[package]]
+name = "sp-application-crypto"
+version = "7.0.0"
+source = "git+https://github.com/gear-tech/substrate.git?branch=gear-polkadot-v0.9.41-canary-no-sandbox#93aa762a96970dc7d5987a8c890a6be4912f3cd3"
+dependencies = [
+ "parity-scale-codec",
+ "scale-info",
+ "serde",
+ "sp-core 7.0.0 (git+https://github.com/gear-tech/substrate.git?branch=gear-polkadot-v0.9.41-canary-no-sandbox)",
+ "sp-io 7.0.0 (git+https://github.com/gear-tech/substrate.git?branch=gear-polkadot-v0.9.41-canary-no-sandbox)",
+ "sp-std 5.0.0 (git+https://github.com/gear-tech/substrate.git?branch=gear-polkadot-v0.9.41-canary-no-sandbox)",
 ]
 
 [[package]]
@@ -3711,7 +3862,21 @@ dependencies = [
  "parity-scale-codec",
  "scale-info",
  "serde",
- "sp-std 5.0.0",
+ "sp-std 5.0.0 (git+https://github.com/gear-tech/substrate.git?branch=gear-polkadot-v0.9.41-canary)",
+ "static_assertions",
+]
+
+[[package]]
+name = "sp-arithmetic"
+version = "6.0.0"
+source = "git+https://github.com/gear-tech/substrate.git?branch=gear-polkadot-v0.9.41-canary-no-sandbox#93aa762a96970dc7d5987a8c890a6be4912f3cd3"
+dependencies = [
+ "integer-sqrt",
+ "num-traits",
+ "parity-scale-codec",
+ "scale-info",
+ "serde",
+ "sp-std 5.0.0 (git+https://github.com/gear-tech/substrate.git?branch=gear-polkadot-v0.9.41-canary-no-sandbox)",
  "static_assertions",
 ]
 
@@ -3745,12 +3910,56 @@ dependencies = [
  "secp256k1",
  "secrecy",
  "serde",
- "sp-core-hashing 5.0.0",
- "sp-debug-derive",
- "sp-externalities",
- "sp-runtime-interface",
- "sp-std 5.0.0",
- "sp-storage",
+ "sp-core-hashing 5.0.0 (git+https://github.com/gear-tech/substrate.git?branch=gear-polkadot-v0.9.41-canary)",
+ "sp-debug-derive 5.0.0 (git+https://github.com/gear-tech/substrate.git?branch=gear-polkadot-v0.9.41-canary)",
+ "sp-externalities 0.13.0 (git+https://github.com/gear-tech/substrate.git?branch=gear-polkadot-v0.9.41-canary)",
+ "sp-runtime-interface 7.0.0 (git+https://github.com/gear-tech/substrate.git?branch=gear-polkadot-v0.9.41-canary)",
+ "sp-std 5.0.0 (git+https://github.com/gear-tech/substrate.git?branch=gear-polkadot-v0.9.41-canary)",
+ "sp-storage 7.0.0 (git+https://github.com/gear-tech/substrate.git?branch=gear-polkadot-v0.9.41-canary)",
+ "ss58-registry",
+ "substrate-bip39",
+ "thiserror",
+ "tiny-bip39",
+ "zeroize",
+]
+
+[[package]]
+name = "sp-core"
+version = "7.0.0"
+source = "git+https://github.com/gear-tech/substrate.git?branch=gear-polkadot-v0.9.41-canary-no-sandbox#93aa762a96970dc7d5987a8c890a6be4912f3cd3"
+dependencies = [
+ "array-bytes",
+ "base58",
+ "bitflags 1.3.2",
+ "blake2",
+ "bounded-collections",
+ "dyn-clonable",
+ "ed25519-zebra",
+ "futures",
+ "hash-db",
+ "hash256-std-hasher",
+ "impl-serde",
+ "lazy_static",
+ "libsecp256k1",
+ "log",
+ "merlin 2.0.1",
+ "parity-scale-codec",
+ "parking_lot",
+ "primitive-types",
+ "rand 0.8.5",
+ "regex",
+ "scale-info",
+ "schnorrkel 0.9.1",
+ "secp256k1",
+ "secrecy",
+ "serde",
+ "sp-allocator",
+ "sp-core-hashing 5.0.0 (git+https://github.com/gear-tech/substrate.git?branch=gear-polkadot-v0.9.41-canary-no-sandbox)",
+ "sp-debug-derive 5.0.0 (git+https://github.com/gear-tech/substrate.git?branch=gear-polkadot-v0.9.41-canary-no-sandbox)",
+ "sp-externalities 0.13.0 (git+https://github.com/gear-tech/substrate.git?branch=gear-polkadot-v0.9.41-canary-no-sandbox)",
+ "sp-runtime-interface 7.0.0 (git+https://github.com/gear-tech/substrate.git?branch=gear-polkadot-v0.9.41-canary-no-sandbox)",
+ "sp-std 5.0.0 (git+https://github.com/gear-tech/substrate.git?branch=gear-polkadot-v0.9.41-canary-no-sandbox)",
+ "sp-storage 7.0.0 (git+https://github.com/gear-tech/substrate.git?branch=gear-polkadot-v0.9.41-canary-no-sandbox)",
  "ss58-registry",
  "substrate-bip39",
  "thiserror",
@@ -3768,7 +3977,21 @@ dependencies = [
  "digest 0.10.7",
  "sha2 0.10.7",
  "sha3",
- "sp-std 5.0.0",
+ "sp-std 5.0.0 (git+https://github.com/gear-tech/substrate.git?branch=gear-polkadot-v0.9.41-canary)",
+ "twox-hash",
+]
+
+[[package]]
+name = "sp-core-hashing"
+version = "5.0.0"
+source = "git+https://github.com/gear-tech/substrate.git?branch=gear-polkadot-v0.9.41-canary-no-sandbox#93aa762a96970dc7d5987a8c890a6be4912f3cd3"
+dependencies = [
+ "blake2b_simd",
+ "byteorder",
+ "digest 0.10.7",
+ "sha2 0.10.7",
+ "sha3",
+ "sp-std 5.0.0 (git+https://github.com/gear-tech/substrate.git?branch=gear-polkadot-v0.9.41-canary-no-sandbox)",
  "twox-hash",
 ]
 
@@ -3790,11 +4013,11 @@ dependencies = [
 [[package]]
 name = "sp-core-hashing-proc-macro"
 version = "5.0.0"
-source = "git+https://github.com/gear-tech/substrate.git?branch=gear-polkadot-v0.9.41-canary#b9a153b1b1d8ba11bc54aebb3732d1930dcba0c8"
+source = "git+https://github.com/gear-tech/substrate.git?branch=gear-polkadot-v0.9.41-canary-no-sandbox#93aa762a96970dc7d5987a8c890a6be4912f3cd3"
 dependencies = [
  "proc-macro2",
  "quote",
- "sp-core-hashing 5.0.0",
+ "sp-core-hashing 5.0.0 (git+https://github.com/gear-tech/substrate.git?branch=gear-polkadot-v0.9.41-canary-no-sandbox)",
  "syn 1.0.109",
 ]
 
@@ -3809,28 +4032,49 @@ dependencies = [
 ]
 
 [[package]]
+name = "sp-debug-derive"
+version = "5.0.0"
+source = "git+https://github.com/gear-tech/substrate.git?branch=gear-polkadot-v0.9.41-canary-no-sandbox#93aa762a96970dc7d5987a8c890a6be4912f3cd3"
+dependencies = [
+ "proc-macro2",
+ "quote",
+ "syn 1.0.109",
+]
+
+[[package]]
 name = "sp-externalities"
 version = "0.13.0"
 source = "git+https://github.com/gear-tech/substrate.git?branch=gear-polkadot-v0.9.41-canary#b9a153b1b1d8ba11bc54aebb3732d1930dcba0c8"
 dependencies = [
  "environmental",
  "parity-scale-codec",
- "sp-std 5.0.0",
- "sp-storage",
+ "sp-std 5.0.0 (git+https://github.com/gear-tech/substrate.git?branch=gear-polkadot-v0.9.41-canary)",
+ "sp-storage 7.0.0 (git+https://github.com/gear-tech/substrate.git?branch=gear-polkadot-v0.9.41-canary)",
+]
+
+[[package]]
+name = "sp-externalities"
+version = "0.13.0"
+source = "git+https://github.com/gear-tech/substrate.git?branch=gear-polkadot-v0.9.41-canary-no-sandbox#93aa762a96970dc7d5987a8c890a6be4912f3cd3"
+dependencies = [
+ "environmental",
+ "parity-scale-codec",
+ "sp-std 5.0.0 (git+https://github.com/gear-tech/substrate.git?branch=gear-polkadot-v0.9.41-canary-no-sandbox)",
+ "sp-storage 7.0.0 (git+https://github.com/gear-tech/substrate.git?branch=gear-polkadot-v0.9.41-canary-no-sandbox)",
 ]
 
 [[package]]
 name = "sp-inherents"
 version = "4.0.0-dev"
-source = "git+https://github.com/gear-tech/substrate.git?branch=gear-polkadot-v0.9.41-canary#b9a153b1b1d8ba11bc54aebb3732d1930dcba0c8"
+source = "git+https://github.com/gear-tech/substrate.git?branch=gear-polkadot-v0.9.41-canary-no-sandbox#93aa762a96970dc7d5987a8c890a6be4912f3cd3"
 dependencies = [
  "async-trait",
  "impl-trait-for-tuples",
  "parity-scale-codec",
  "scale-info",
- "sp-core",
- "sp-runtime",
- "sp-std 5.0.0",
+ "sp-core 7.0.0 (git+https://github.com/gear-tech/substrate.git?branch=gear-polkadot-v0.9.41-canary-no-sandbox)",
+ "sp-runtime 7.0.0 (git+https://github.com/gear-tech/substrate.git?branch=gear-polkadot-v0.9.41-canary-no-sandbox)",
+ "sp-std 5.0.0 (git+https://github.com/gear-tech/substrate.git?branch=gear-polkadot-v0.9.41-canary-no-sandbox)",
  "thiserror",
 ]
 
@@ -3847,15 +4091,40 @@ dependencies = [
  "log",
  "parity-scale-codec",
  "secp256k1",
- "sp-core",
- "sp-externalities",
- "sp-keystore",
- "sp-runtime-interface",
- "sp-state-machine",
- "sp-std 5.0.0",
- "sp-tracing",
- "sp-trie",
- "sp-wasm-interface",
+ "sp-core 7.0.0 (git+https://github.com/gear-tech/substrate.git?branch=gear-polkadot-v0.9.41-canary)",
+ "sp-externalities 0.13.0 (git+https://github.com/gear-tech/substrate.git?branch=gear-polkadot-v0.9.41-canary)",
+ "sp-keystore 0.13.0 (git+https://github.com/gear-tech/substrate.git?branch=gear-polkadot-v0.9.41-canary)",
+ "sp-runtime-interface 7.0.0 (git+https://github.com/gear-tech/substrate.git?branch=gear-polkadot-v0.9.41-canary)",
+ "sp-state-machine 0.13.0 (git+https://github.com/gear-tech/substrate.git?branch=gear-polkadot-v0.9.41-canary)",
+ "sp-std 5.0.0 (git+https://github.com/gear-tech/substrate.git?branch=gear-polkadot-v0.9.41-canary)",
+ "sp-tracing 6.0.0 (git+https://github.com/gear-tech/substrate.git?branch=gear-polkadot-v0.9.41-canary)",
+ "sp-trie 7.0.0 (git+https://github.com/gear-tech/substrate.git?branch=gear-polkadot-v0.9.41-canary)",
+ "sp-wasm-interface 7.0.0 (git+https://github.com/gear-tech/substrate.git?branch=gear-polkadot-v0.9.41-canary)",
+ "tracing",
+ "tracing-core",
+]
+
+[[package]]
+name = "sp-io"
+version = "7.0.0"
+source = "git+https://github.com/gear-tech/substrate.git?branch=gear-polkadot-v0.9.41-canary-no-sandbox#93aa762a96970dc7d5987a8c890a6be4912f3cd3"
+dependencies = [
+ "bytes",
+ "ed25519",
+ "ed25519-dalek",
+ "futures",
+ "libsecp256k1",
+ "log",
+ "parity-scale-codec",
+ "secp256k1",
+ "sp-core 7.0.0 (git+https://github.com/gear-tech/substrate.git?branch=gear-polkadot-v0.9.41-canary-no-sandbox)",
+ "sp-externalities 0.13.0 (git+https://github.com/gear-tech/substrate.git?branch=gear-polkadot-v0.9.41-canary-no-sandbox)",
+ "sp-keystore 0.13.0 (git+https://github.com/gear-tech/substrate.git?branch=gear-polkadot-v0.9.41-canary-no-sandbox)",
+ "sp-runtime-interface 7.0.0 (git+https://github.com/gear-tech/substrate.git?branch=gear-polkadot-v0.9.41-canary-no-sandbox)",
+ "sp-state-machine 0.13.0 (git+https://github.com/gear-tech/substrate.git?branch=gear-polkadot-v0.9.41-canary-no-sandbox)",
+ "sp-std 5.0.0 (git+https://github.com/gear-tech/substrate.git?branch=gear-polkadot-v0.9.41-canary-no-sandbox)",
+ "sp-tracing 6.0.0 (git+https://github.com/gear-tech/substrate.git?branch=gear-polkadot-v0.9.41-canary-no-sandbox)",
+ "sp-trie 7.0.0 (git+https://github.com/gear-tech/substrate.git?branch=gear-polkadot-v0.9.41-canary-no-sandbox)",
  "tracing",
  "tracing-core",
 ]
@@ -3871,8 +4140,24 @@ dependencies = [
  "parity-scale-codec",
  "parking_lot",
  "schnorrkel 0.9.1",
- "sp-core",
- "sp-externalities",
+ "sp-core 7.0.0 (git+https://github.com/gear-tech/substrate.git?branch=gear-polkadot-v0.9.41-canary)",
+ "sp-externalities 0.13.0 (git+https://github.com/gear-tech/substrate.git?branch=gear-polkadot-v0.9.41-canary)",
+ "thiserror",
+]
+
+[[package]]
+name = "sp-keystore"
+version = "0.13.0"
+source = "git+https://github.com/gear-tech/substrate.git?branch=gear-polkadot-v0.9.41-canary-no-sandbox#93aa762a96970dc7d5987a8c890a6be4912f3cd3"
+dependencies = [
+ "async-trait",
+ "futures",
+ "merlin 2.0.1",
+ "parity-scale-codec",
+ "parking_lot",
+ "schnorrkel 0.9.1",
+ "sp-core 7.0.0 (git+https://github.com/gear-tech/substrate.git?branch=gear-polkadot-v0.9.41-canary-no-sandbox)",
+ "sp-externalities 0.13.0 (git+https://github.com/gear-tech/substrate.git?branch=gear-polkadot-v0.9.41-canary-no-sandbox)",
  "thiserror",
 ]
 
@@ -3880,6 +4165,16 @@ dependencies = [
 name = "sp-panic-handler"
 version = "5.0.0"
 source = "git+https://github.com/gear-tech/substrate.git?branch=gear-polkadot-v0.9.41-canary#b9a153b1b1d8ba11bc54aebb3732d1930dcba0c8"
+dependencies = [
+ "backtrace",
+ "lazy_static",
+ "regex",
+]
+
+[[package]]
+name = "sp-panic-handler"
+version = "5.0.0"
+source = "git+https://github.com/gear-tech/substrate.git?branch=gear-polkadot-v0.9.41-canary-no-sandbox#93aa762a96970dc7d5987a8c890a6be4912f3cd3"
 dependencies = [
  "backtrace",
  "lazy_static",
@@ -3900,12 +4195,34 @@ dependencies = [
  "rand 0.8.5",
  "scale-info",
  "serde",
- "sp-application-crypto",
- "sp-arithmetic",
- "sp-core",
- "sp-io",
- "sp-std 5.0.0",
- "sp-weights",
+ "sp-application-crypto 7.0.0 (git+https://github.com/gear-tech/substrate.git?branch=gear-polkadot-v0.9.41-canary)",
+ "sp-arithmetic 6.0.0 (git+https://github.com/gear-tech/substrate.git?branch=gear-polkadot-v0.9.41-canary)",
+ "sp-core 7.0.0 (git+https://github.com/gear-tech/substrate.git?branch=gear-polkadot-v0.9.41-canary)",
+ "sp-io 7.0.0 (git+https://github.com/gear-tech/substrate.git?branch=gear-polkadot-v0.9.41-canary)",
+ "sp-std 5.0.0 (git+https://github.com/gear-tech/substrate.git?branch=gear-polkadot-v0.9.41-canary)",
+ "sp-weights 4.0.0 (git+https://github.com/gear-tech/substrate.git?branch=gear-polkadot-v0.9.41-canary)",
+]
+
+[[package]]
+name = "sp-runtime"
+version = "7.0.0"
+source = "git+https://github.com/gear-tech/substrate.git?branch=gear-polkadot-v0.9.41-canary-no-sandbox#93aa762a96970dc7d5987a8c890a6be4912f3cd3"
+dependencies = [
+ "either",
+ "hash256-std-hasher",
+ "impl-trait-for-tuples",
+ "log",
+ "parity-scale-codec",
+ "paste",
+ "rand 0.8.5",
+ "scale-info",
+ "serde",
+ "sp-application-crypto 7.0.0 (git+https://github.com/gear-tech/substrate.git?branch=gear-polkadot-v0.9.41-canary-no-sandbox)",
+ "sp-arithmetic 6.0.0 (git+https://github.com/gear-tech/substrate.git?branch=gear-polkadot-v0.9.41-canary-no-sandbox)",
+ "sp-core 7.0.0 (git+https://github.com/gear-tech/substrate.git?branch=gear-polkadot-v0.9.41-canary-no-sandbox)",
+ "sp-io 7.0.0 (git+https://github.com/gear-tech/substrate.git?branch=gear-polkadot-v0.9.41-canary-no-sandbox)",
+ "sp-std 5.0.0 (git+https://github.com/gear-tech/substrate.git?branch=gear-polkadot-v0.9.41-canary-no-sandbox)",
+ "sp-weights 4.0.0 (git+https://github.com/gear-tech/substrate.git?branch=gear-polkadot-v0.9.41-canary-no-sandbox)",
 ]
 
 [[package]]
@@ -3917,12 +4234,30 @@ dependencies = [
  "impl-trait-for-tuples",
  "parity-scale-codec",
  "primitive-types",
- "sp-externalities",
- "sp-runtime-interface-proc-macro",
- "sp-std 5.0.0",
- "sp-storage",
- "sp-tracing",
- "sp-wasm-interface",
+ "sp-externalities 0.13.0 (git+https://github.com/gear-tech/substrate.git?branch=gear-polkadot-v0.9.41-canary)",
+ "sp-runtime-interface-proc-macro 6.0.0 (git+https://github.com/gear-tech/substrate.git?branch=gear-polkadot-v0.9.41-canary)",
+ "sp-std 5.0.0 (git+https://github.com/gear-tech/substrate.git?branch=gear-polkadot-v0.9.41-canary)",
+ "sp-storage 7.0.0 (git+https://github.com/gear-tech/substrate.git?branch=gear-polkadot-v0.9.41-canary)",
+ "sp-tracing 6.0.0 (git+https://github.com/gear-tech/substrate.git?branch=gear-polkadot-v0.9.41-canary)",
+ "sp-wasm-interface 7.0.0 (git+https://github.com/gear-tech/substrate.git?branch=gear-polkadot-v0.9.41-canary)",
+ "static_assertions",
+]
+
+[[package]]
+name = "sp-runtime-interface"
+version = "7.0.0"
+source = "git+https://github.com/gear-tech/substrate.git?branch=gear-polkadot-v0.9.41-canary-no-sandbox#93aa762a96970dc7d5987a8c890a6be4912f3cd3"
+dependencies = [
+ "bytes",
+ "impl-trait-for-tuples",
+ "parity-scale-codec",
+ "primitive-types",
+ "sp-externalities 0.13.0 (git+https://github.com/gear-tech/substrate.git?branch=gear-polkadot-v0.9.41-canary-no-sandbox)",
+ "sp-runtime-interface-proc-macro 6.0.0 (git+https://github.com/gear-tech/substrate.git?branch=gear-polkadot-v0.9.41-canary-no-sandbox)",
+ "sp-std 5.0.0 (git+https://github.com/gear-tech/substrate.git?branch=gear-polkadot-v0.9.41-canary-no-sandbox)",
+ "sp-storage 7.0.0 (git+https://github.com/gear-tech/substrate.git?branch=gear-polkadot-v0.9.41-canary-no-sandbox)",
+ "sp-tracing 6.0.0 (git+https://github.com/gear-tech/substrate.git?branch=gear-polkadot-v0.9.41-canary-no-sandbox)",
+ "sp-wasm-interface 7.0.0 (git+https://github.com/gear-tech/substrate.git?branch=gear-polkadot-v0.9.41-canary-no-sandbox)",
  "static_assertions",
 ]
 
@@ -3939,15 +4274,27 @@ dependencies = [
 ]
 
 [[package]]
+name = "sp-runtime-interface-proc-macro"
+version = "6.0.0"
+source = "git+https://github.com/gear-tech/substrate.git?branch=gear-polkadot-v0.9.41-canary-no-sandbox#93aa762a96970dc7d5987a8c890a6be4912f3cd3"
+dependencies = [
+ "Inflector",
+ "proc-macro-crate",
+ "proc-macro2",
+ "quote",
+ "syn 1.0.109",
+]
+
+[[package]]
 name = "sp-staking"
 version = "4.0.0-dev"
-source = "git+https://github.com/gear-tech/substrate.git?branch=gear-polkadot-v0.9.41-canary#b9a153b1b1d8ba11bc54aebb3732d1930dcba0c8"
+source = "git+https://github.com/gear-tech/substrate.git?branch=gear-polkadot-v0.9.41-canary-no-sandbox#93aa762a96970dc7d5987a8c890a6be4912f3cd3"
 dependencies = [
  "parity-scale-codec",
  "scale-info",
- "sp-core",
- "sp-runtime",
- "sp-std 5.0.0",
+ "sp-core 7.0.0 (git+https://github.com/gear-tech/substrate.git?branch=gear-polkadot-v0.9.41-canary-no-sandbox)",
+ "sp-runtime 7.0.0 (git+https://github.com/gear-tech/substrate.git?branch=gear-polkadot-v0.9.41-canary-no-sandbox)",
+ "sp-std 5.0.0 (git+https://github.com/gear-tech/substrate.git?branch=gear-polkadot-v0.9.41-canary-no-sandbox)",
 ]
 
 [[package]]
@@ -3961,11 +4308,31 @@ dependencies = [
  "parking_lot",
  "rand 0.8.5",
  "smallvec",
- "sp-core",
- "sp-externalities",
- "sp-panic-handler",
- "sp-std 5.0.0",
- "sp-trie",
+ "sp-core 7.0.0 (git+https://github.com/gear-tech/substrate.git?branch=gear-polkadot-v0.9.41-canary)",
+ "sp-externalities 0.13.0 (git+https://github.com/gear-tech/substrate.git?branch=gear-polkadot-v0.9.41-canary)",
+ "sp-panic-handler 5.0.0 (git+https://github.com/gear-tech/substrate.git?branch=gear-polkadot-v0.9.41-canary)",
+ "sp-std 5.0.0 (git+https://github.com/gear-tech/substrate.git?branch=gear-polkadot-v0.9.41-canary)",
+ "sp-trie 7.0.0 (git+https://github.com/gear-tech/substrate.git?branch=gear-polkadot-v0.9.41-canary)",
+ "thiserror",
+ "tracing",
+]
+
+[[package]]
+name = "sp-state-machine"
+version = "0.13.0"
+source = "git+https://github.com/gear-tech/substrate.git?branch=gear-polkadot-v0.9.41-canary-no-sandbox#93aa762a96970dc7d5987a8c890a6be4912f3cd3"
+dependencies = [
+ "hash-db",
+ "log",
+ "parity-scale-codec",
+ "parking_lot",
+ "rand 0.8.5",
+ "smallvec",
+ "sp-core 7.0.0 (git+https://github.com/gear-tech/substrate.git?branch=gear-polkadot-v0.9.41-canary-no-sandbox)",
+ "sp-externalities 0.13.0 (git+https://github.com/gear-tech/substrate.git?branch=gear-polkadot-v0.9.41-canary-no-sandbox)",
+ "sp-panic-handler 5.0.0 (git+https://github.com/gear-tech/substrate.git?branch=gear-polkadot-v0.9.41-canary-no-sandbox)",
+ "sp-std 5.0.0 (git+https://github.com/gear-tech/substrate.git?branch=gear-polkadot-v0.9.41-canary-no-sandbox)",
+ "sp-trie 7.0.0 (git+https://github.com/gear-tech/substrate.git?branch=gear-polkadot-v0.9.41-canary-no-sandbox)",
  "thiserror",
  "tracing",
 ]
@@ -3974,6 +4341,11 @@ dependencies = [
 name = "sp-std"
 version = "5.0.0"
 source = "git+https://github.com/gear-tech/substrate.git?branch=gear-polkadot-v0.9.41-canary#b9a153b1b1d8ba11bc54aebb3732d1930dcba0c8"
+
+[[package]]
+name = "sp-std"
+version = "5.0.0"
+source = "git+https://github.com/gear-tech/substrate.git?branch=gear-polkadot-v0.9.41-canary-no-sandbox#93aa762a96970dc7d5987a8c890a6be4912f3cd3"
 
 [[package]]
 name = "sp-std"
@@ -3990,8 +4362,21 @@ dependencies = [
  "parity-scale-codec",
  "ref-cast",
  "serde",
- "sp-debug-derive",
- "sp-std 5.0.0",
+ "sp-debug-derive 5.0.0 (git+https://github.com/gear-tech/substrate.git?branch=gear-polkadot-v0.9.41-canary)",
+ "sp-std 5.0.0 (git+https://github.com/gear-tech/substrate.git?branch=gear-polkadot-v0.9.41-canary)",
+]
+
+[[package]]
+name = "sp-storage"
+version = "7.0.0"
+source = "git+https://github.com/gear-tech/substrate.git?branch=gear-polkadot-v0.9.41-canary-no-sandbox#93aa762a96970dc7d5987a8c890a6be4912f3cd3"
+dependencies = [
+ "impl-serde",
+ "parity-scale-codec",
+ "ref-cast",
+ "serde",
+ "sp-debug-derive 5.0.0 (git+https://github.com/gear-tech/substrate.git?branch=gear-polkadot-v0.9.41-canary-no-sandbox)",
+ "sp-std 5.0.0 (git+https://github.com/gear-tech/substrate.git?branch=gear-polkadot-v0.9.41-canary-no-sandbox)",
 ]
 
 [[package]]
@@ -4000,7 +4385,19 @@ version = "6.0.0"
 source = "git+https://github.com/gear-tech/substrate.git?branch=gear-polkadot-v0.9.41-canary#b9a153b1b1d8ba11bc54aebb3732d1930dcba0c8"
 dependencies = [
  "parity-scale-codec",
- "sp-std 5.0.0",
+ "sp-std 5.0.0 (git+https://github.com/gear-tech/substrate.git?branch=gear-polkadot-v0.9.41-canary)",
+ "tracing",
+ "tracing-core",
+ "tracing-subscriber",
+]
+
+[[package]]
+name = "sp-tracing"
+version = "6.0.0"
+source = "git+https://github.com/gear-tech/substrate.git?branch=gear-polkadot-v0.9.41-canary-no-sandbox#93aa762a96970dc7d5987a8c890a6be4912f3cd3"
+dependencies = [
+ "parity-scale-codec",
+ "sp-std 5.0.0 (git+https://github.com/gear-tech/substrate.git?branch=gear-polkadot-v0.9.41-canary-no-sandbox)",
  "tracing",
  "tracing-core",
  "tracing-subscriber",
@@ -4021,8 +4418,31 @@ dependencies = [
  "parking_lot",
  "scale-info",
  "schnellru",
- "sp-core",
- "sp-std 5.0.0",
+ "sp-core 7.0.0 (git+https://github.com/gear-tech/substrate.git?branch=gear-polkadot-v0.9.41-canary)",
+ "sp-std 5.0.0 (git+https://github.com/gear-tech/substrate.git?branch=gear-polkadot-v0.9.41-canary)",
+ "thiserror",
+ "tracing",
+ "trie-db",
+ "trie-root",
+]
+
+[[package]]
+name = "sp-trie"
+version = "7.0.0"
+source = "git+https://github.com/gear-tech/substrate.git?branch=gear-polkadot-v0.9.41-canary-no-sandbox#93aa762a96970dc7d5987a8c890a6be4912f3cd3"
+dependencies = [
+ "ahash 0.8.3",
+ "hash-db",
+ "hashbrown 0.12.3",
+ "lazy_static",
+ "memory-db",
+ "nohash-hasher",
+ "parity-scale-codec",
+ "parking_lot",
+ "scale-info",
+ "schnellru",
+ "sp-core 7.0.0 (git+https://github.com/gear-tech/substrate.git?branch=gear-polkadot-v0.9.41-canary-no-sandbox)",
+ "sp-std 5.0.0 (git+https://github.com/gear-tech/substrate.git?branch=gear-polkadot-v0.9.41-canary-no-sandbox)",
  "thiserror",
  "tracing",
  "trie-db",
@@ -4032,7 +4452,7 @@ dependencies = [
 [[package]]
 name = "sp-version"
 version = "5.0.0"
-source = "git+https://github.com/gear-tech/substrate.git?branch=gear-polkadot-v0.9.41-canary#b9a153b1b1d8ba11bc54aebb3732d1930dcba0c8"
+source = "git+https://github.com/gear-tech/substrate.git?branch=gear-polkadot-v0.9.41-canary-no-sandbox#93aa762a96970dc7d5987a8c890a6be4912f3cd3"
 dependencies = [
  "impl-serde",
  "parity-scale-codec",
@@ -4040,8 +4460,8 @@ dependencies = [
  "scale-info",
  "serde",
  "sp-core-hashing-proc-macro",
- "sp-runtime",
- "sp-std 5.0.0",
+ "sp-runtime 7.0.0 (git+https://github.com/gear-tech/substrate.git?branch=gear-polkadot-v0.9.41-canary-no-sandbox)",
+ "sp-std 5.0.0 (git+https://github.com/gear-tech/substrate.git?branch=gear-polkadot-v0.9.41-canary-no-sandbox)",
  "sp-version-proc-macro",
  "thiserror",
 ]
@@ -4049,7 +4469,7 @@ dependencies = [
 [[package]]
 name = "sp-version-proc-macro"
 version = "4.0.0-dev"
-source = "git+https://github.com/gear-tech/substrate.git?branch=gear-polkadot-v0.9.41-canary#b9a153b1b1d8ba11bc54aebb3732d1930dcba0c8"
+source = "git+https://github.com/gear-tech/substrate.git?branch=gear-polkadot-v0.9.41-canary-no-sandbox#93aa762a96970dc7d5987a8c890a6be4912f3cd3"
 dependencies = [
  "parity-scale-codec",
  "proc-macro2",
@@ -4066,9 +4486,34 @@ dependencies = [
  "impl-trait-for-tuples",
  "log",
  "parity-scale-codec",
- "sp-std 5.0.0",
+ "sp-std 5.0.0 (git+https://github.com/gear-tech/substrate.git?branch=gear-polkadot-v0.9.41-canary)",
  "wasmi 0.13.2",
  "wasmtime",
+]
+
+[[package]]
+name = "sp-wasm-interface"
+version = "7.0.0"
+source = "git+https://github.com/gear-tech/substrate.git?branch=gear-polkadot-v0.9.41-canary-no-sandbox#93aa762a96970dc7d5987a8c890a6be4912f3cd3"
+dependencies = [
+ "anyhow",
+ "impl-trait-for-tuples",
+ "log",
+ "parity-scale-codec",
+ "sp-allocator",
+ "sp-std 5.0.0 (git+https://github.com/gear-tech/substrate.git?branch=gear-polkadot-v0.9.41-canary-no-sandbox)",
+ "sp-wasm-interface-common",
+ "wasmtime",
+]
+
+[[package]]
+name = "sp-wasm-interface-common"
+version = "7.0.0"
+source = "git+https://github.com/gear-tech/substrate.git?branch=gear-polkadot-v0.9.41-canary-no-sandbox#93aa762a96970dc7d5987a8c890a6be4912f3cd3"
+dependencies = [
+ "parity-scale-codec",
+ "sp-std 5.0.0 (git+https://github.com/gear-tech/substrate.git?branch=gear-polkadot-v0.9.41-canary-no-sandbox)",
+ "wasmi 0.13.2",
 ]
 
 [[package]]
@@ -4080,10 +4525,25 @@ dependencies = [
  "scale-info",
  "serde",
  "smallvec",
- "sp-arithmetic",
- "sp-core",
- "sp-debug-derive",
- "sp-std 5.0.0",
+ "sp-arithmetic 6.0.0 (git+https://github.com/gear-tech/substrate.git?branch=gear-polkadot-v0.9.41-canary)",
+ "sp-core 7.0.0 (git+https://github.com/gear-tech/substrate.git?branch=gear-polkadot-v0.9.41-canary)",
+ "sp-debug-derive 5.0.0 (git+https://github.com/gear-tech/substrate.git?branch=gear-polkadot-v0.9.41-canary)",
+ "sp-std 5.0.0 (git+https://github.com/gear-tech/substrate.git?branch=gear-polkadot-v0.9.41-canary)",
+]
+
+[[package]]
+name = "sp-weights"
+version = "4.0.0"
+source = "git+https://github.com/gear-tech/substrate.git?branch=gear-polkadot-v0.9.41-canary-no-sandbox#93aa762a96970dc7d5987a8c890a6be4912f3cd3"
+dependencies = [
+ "parity-scale-codec",
+ "scale-info",
+ "serde",
+ "smallvec",
+ "sp-arithmetic 6.0.0 (git+https://github.com/gear-tech/substrate.git?branch=gear-polkadot-v0.9.41-canary-no-sandbox)",
+ "sp-core 7.0.0 (git+https://github.com/gear-tech/substrate.git?branch=gear-polkadot-v0.9.41-canary-no-sandbox)",
+ "sp-debug-derive 5.0.0 (git+https://github.com/gear-tech/substrate.git?branch=gear-polkadot-v0.9.41-canary-no-sandbox)",
+ "sp-std 5.0.0 (git+https://github.com/gear-tech/substrate.git?branch=gear-polkadot-v0.9.41-canary-no-sandbox)",
 ]
 
 [[package]]
@@ -4196,9 +4656,9 @@ dependencies = [
  "scale-value",
  "serde",
  "serde_json",
- "sp-core",
- "sp-core-hashing 5.0.0",
- "sp-runtime",
+ "sp-core 7.0.0 (git+https://github.com/gear-tech/substrate.git?branch=gear-polkadot-v0.9.41-canary)",
+ "sp-core-hashing 5.0.0 (git+https://github.com/gear-tech/substrate.git?branch=gear-polkadot-v0.9.41-canary)",
+ "sp-runtime 7.0.0 (git+https://github.com/gear-tech/substrate.git?branch=gear-polkadot-v0.9.41-canary)",
  "subxt-macro",
  "subxt-metadata",
  "thiserror",
@@ -4243,7 +4703,7 @@ dependencies = [
  "frame-metadata",
  "parity-scale-codec",
  "scale-info",
- "sp-core-hashing 5.0.0",
+ "sp-core-hashing 5.0.0 (git+https://github.com/gear-tech/substrate.git?branch=gear-polkadot-v0.9.41-canary)",
  "thiserror",
 ]
 
