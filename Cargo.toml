@@ -14,11 +14,11 @@ license = "MIT"
 authors = ["Gear Technologies"]
 
 [workspace.dependencies]
-gear-wasm-builder = { git = "https://github.com/gear-tech/gear", branch = "cl/issue-2962" }
-gclient = { git = "https://github.com/gear-tech/gear", branch = "cl/issue-2962" }
-gtest = { git = "https://github.com/gear-tech/gear", branch = "cl/issue-2962" }
-gmeta = { git = "https://github.com/gear-tech/gear", branch = "cl/issue-2962" }
-gstd = { git = "https://github.com/gear-tech/gear", branch = "cl/issue-2962" }
+gear-wasm-builder = { git = "https://github.com/gear-tech/gear", rev = "946ac47" }
+gclient = { git = "https://github.com/gear-tech/gear", rev = "946ac47" }
+gtest = { git = "https://github.com/gear-tech/gear", rev = "946ac47" }
+gmeta = { git = "https://github.com/gear-tech/gear", rev = "946ac47" }
+gstd = { git = "https://github.com/gear-tech/gear", rev = "946ac47" }
 ft-main-io = { git = "https://github.com/gear-foundation/dapps-sharded-fungible-token", tag = "2.1.4" }
 ft-main = { git = "https://github.com/gear-foundation/dapps-sharded-fungible-token", tag = "2.1.4" }
 ft-logic = { git = "https://github.com/gear-foundation/dapps-sharded-fungible-token", tag = "2.1.4" }
@@ -30,3 +30,13 @@ dex-factory-io.path = "factory/io"
 hashbrown = "0.14"
 primitive-types = { version = "0.12", default-features = false }
 gear-lib = { git = "https://github.com/gear-foundation/dapps-gear-lib", branch = "as-dev-dev" }
+
+[patch."https://github.com/gear-tech/gear"]
+gear-core = { path = "../gear/core" }
+gear-core-errors = { path = "../gear/core-errors" }
+gear-core-processor = { path = "../gear/core-processor" }
+gear-backend-common = { path = "../gear/core-backend/common" }
+gear-backend-wasmi = { path = "../gear/core-backend/wasmi" }
+gstd = { path = "../gear/gstd" }
+gsdk = { path = "../gear/gsdk" }
+gclient = { path = "../gear/gclient" }

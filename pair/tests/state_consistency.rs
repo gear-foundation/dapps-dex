@@ -15,9 +15,9 @@ const ALICE: [u8; 32] = [
     212, 53, 147, 199, 21, 253, 211, 28, 97, 20, 26, 189, 4, 169, 159, 214, 130, 44, 133, 88, 133,
     76, 205, 227, 154, 86, 132, 231, 165, 109, 162, 125,
 ];
-const FT_MAIN: &str = "../target/wasm32-unknown-unknown/debug/ft_main.opt.wasm";
-const FT_STORAGE: &str = "../target/wasm32-unknown-unknown/debug/ft_storage.opt.wasm";
-const FT_LOGIC: &str = "../target/wasm32-unknown-unknown/debug/ft_logic.opt.wasm";
+const FT_MAIN: &str = "../target/wasm32-unknown-unknown/release/ft_main.opt.wasm";
+const FT_STORAGE: &str = "../target/wasm32-unknown-unknown/release/ft_storage.opt.wasm";
+const FT_LOGIC: &str = "../target/wasm32-unknown-unknown/release/ft_logic.opt.wasm";
 
 fn decode<T: Decode>(payload: Vec<u8>) -> Result<T> {
     Ok(T::decode(&mut payload.as_slice())?)
