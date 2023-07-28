@@ -1234,7 +1234,7 @@ checksum = "0845fa252299212f0389d64ba26f34fa32cfe41588355f21ed507c59a0f64541"
 [[package]]
 name = "ft-logic"
 version = "2.1.4"
-source = "git+https://github.com/gear-foundation/dapps-sharded-fungible-token?tag=2.1.4#48ca7b3bb12becfa07da1dafbb266194135e388d"
+source = "git+https://github.com/gear-foundation/dapps-sharded-fungible-token?tag=2.1.4#13e7fcd8e47dbdfecccb91907e8f8eb877050aec"
 dependencies = [
  "ft-logic-io",
  "ft-main-io",
@@ -1253,7 +1253,7 @@ dependencies = [
 [[package]]
 name = "ft-logic-io"
 version = "2.1.4"
-source = "git+https://github.com/gear-foundation/dapps-sharded-fungible-token?tag=2.1.4#48ca7b3bb12becfa07da1dafbb266194135e388d"
+source = "git+https://github.com/gear-foundation/dapps-sharded-fungible-token?tag=2.1.4#13e7fcd8e47dbdfecccb91907e8f8eb877050aec"
 dependencies = [
  "ft-main-io",
  "ft-storage-io",
@@ -1268,7 +1268,7 @@ dependencies = [
 [[package]]
 name = "ft-main"
 version = "2.1.4"
-source = "git+https://github.com/gear-foundation/dapps-sharded-fungible-token?tag=2.1.4#48ca7b3bb12becfa07da1dafbb266194135e388d"
+source = "git+https://github.com/gear-foundation/dapps-sharded-fungible-token?tag=2.1.4#13e7fcd8e47dbdfecccb91907e8f8eb877050aec"
 dependencies = [
  "ft-logic-io",
  "ft-main-io",
@@ -1284,7 +1284,7 @@ dependencies = [
 [[package]]
 name = "ft-main-io"
 version = "2.1.4"
-source = "git+https://github.com/gear-foundation/dapps-sharded-fungible-token?tag=2.1.4#48ca7b3bb12becfa07da1dafbb266194135e388d"
+source = "git+https://github.com/gear-foundation/dapps-sharded-fungible-token?tag=2.1.4#13e7fcd8e47dbdfecccb91907e8f8eb877050aec"
 dependencies = [
  "gmeta",
  "gstd",
@@ -1296,7 +1296,7 @@ dependencies = [
 [[package]]
 name = "ft-storage"
 version = "2.1.4"
-source = "git+https://github.com/gear-foundation/dapps-sharded-fungible-token?tag=2.1.4#48ca7b3bb12becfa07da1dafbb266194135e388d"
+source = "git+https://github.com/gear-foundation/dapps-sharded-fungible-token?tag=2.1.4#13e7fcd8e47dbdfecccb91907e8f8eb877050aec"
 dependencies = [
  "ft-storage-io",
  "gear-wasm-builder",
@@ -1309,7 +1309,7 @@ dependencies = [
 [[package]]
 name = "ft-storage-io"
 version = "2.1.2"
-source = "git+https://github.com/gear-foundation/dapps-sharded-fungible-token?tag=2.1.4#48ca7b3bb12becfa07da1dafbb266194135e388d"
+source = "git+https://github.com/gear-foundation/dapps-sharded-fungible-token?tag=2.1.4#13e7fcd8e47dbdfecccb91907e8f8eb877050aec"
 dependencies = [
  "gmeta",
  "gstd",
@@ -4587,7 +4587,7 @@ checksum = "97fee6b57c6a41524a810daee9286c02d7752c4253064d0b05472833a438f675"
 dependencies = [
  "cfg-if",
  "digest 0.10.7",
- "rand 0.8.5",
+ "rand 0.7.3",
  "static_assertions",
 ]
 
