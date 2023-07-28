@@ -25,7 +25,7 @@ pretty_assertions = "1"
 dex-factory = { path = "../factory" }
 dex-factory-state = { path = "../factory/state" }
 dex-pair-state = { path = "state" }
-sp-core-hashing = "8"
+sp-core-hashing = "9"
 tokio = "1"
 
 [build-dependencies]
